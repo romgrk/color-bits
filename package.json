@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "main": "index.js",
   "scripts": {
-    "prepack": "npmignore --auto",
+    "prepack": "pnpm run build && npmignore --auto",
     "build": "tsc",
     "start": "tsc --watch",
     "test": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest --watch"
