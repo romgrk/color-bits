@@ -7,6 +7,10 @@
     "start": "tsc --watch",
     "test": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest --watch"
   },
+  "exports": {
+    ".": "./build/index.js",
+    "./*": "./build/*"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
