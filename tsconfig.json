@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "module": "ES2022",
+    "lib": ["ES2017"],
+    "strict": true,
+    "noImplicitAny": true,
+    "esModuleInterop": true,
+    "preserveConstEnums": true,
+    "outDir": "./build",
+    "sourceMap": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["**/*.test.ts"]
+}

@@ -29,6 +29,25 @@ export function darken(color: Color, coefficient: number): Color {
 }
 
 /**
+ * Lighten a color.
+ * @param color - Color
+ * @param coefficient - Multiplier in the range [0, 1]
+ */
+export function lighten(color: Color, coefficient: number): Color {
+  const r = getRed(color);
+  const g = getGreen(color);
+  const b = getBlue(color);
+  const a = getAlpha(color);
+
+  return newColor(
+    r + (255 - r) * coefficient,
+    g + (255 - g) * coefficient,
+    b + (255 - b) * coefficient,
+    a,
+  )
+}
+
+/**
  * The relative brightness of any point in a color space, normalized to 0 for
  * darkest black and 1 for lightest white.
  * Formula: https://www.w3.org/TR/WCAG20-TECHS/G17.html#G17-tests

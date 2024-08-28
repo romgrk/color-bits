@@ -1,9 +1,9 @@
-import { expect } from 'chai';
-import * as Color from '@mui/system/color';
+import { expect } from 'chai'
+import * as Color from './index';
 
 const c = Color.from;
 
-describe.only('utils/color', () => {
+describe('Color', () => {
   it('can encode/decode the representation', () => {
     const color = Color.from(0x599eff80)
     expect(Color.getRed(color)).to.equal(0x59)
@@ -20,7 +20,7 @@ describe.only('utils/color', () => {
     expect(Color.setAlpha(color, 0)).to.equal(c(0xffffff00))
   });
 
-  describe('parse', () => {
+  describe('.parse():', () => {
     it('parses CSS hexadecimal', () => {
       expect(Color.parse('#59f')).to.equal(c(0x5599ffff));
       expect(Color.parse('#5599ff')).to.equal(c(0x5599ffff));

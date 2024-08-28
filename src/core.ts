@@ -8,7 +8,6 @@ export const OFFSET_B =  8;
 export const OFFSET_A =  0;
 
 export function newColor(r: number, g: number, b: number, a: number) {
-  // prettier-ignore
   return (
     (r << OFFSET_R) +
     (g << OFFSET_G) +
