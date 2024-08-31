@@ -70,7 +70,7 @@ describe('Color', () => {
       expect(Color.format(Color.parse('oklab(40.1% 0.1143 0.045)'))).to.equal(Color.format(c(0x7d2429ff)))
     });
 
-    it.only('parses oklch()', () => {
+    it('parses oklch()', () => {
       expect(Color.format(Color.parse('oklch(40.1% 0.123 21.57)'))).to.equal(Color.format(c(0x7d2429ff)))
     });
 
