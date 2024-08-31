@@ -7,6 +7,9 @@
     "prepack": "pnpm run build && npmignore --auto",
     "build": "tsc",
     "start": "tsc --watch",
+    "docs": "pnpm run docs:core && pnpm run docs:string",
+    "docs:core": "typedoc --plugin typedoc-plugin-markdown --out ./docs ./src/index.ts",
+    "docs:string": "typedoc --plugin typedoc-plugin-markdown --out ./docs/string ./src/string.ts",
     "test": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest --watch"
   },
   "exports": {
