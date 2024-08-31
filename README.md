@@ -46,8 +46,6 @@ For performance reasons, the representation is `int32`, not `uint32`. It is expe
 
 Every function is tree-shakeable, so the bundle size cost should be from 1.5kb to 3kb, depending on which functions you use.
 
-<small>🔴🟠🟡🟢🔵🟣</small>
-
 ### 📚 Documentation
 
 [Documentation: `'color-bits'`](https://github.com/romgrk/color-bits/tree/master/docs/README.md)  
@@ -75,3 +73,7 @@ const output = Color.alpha(backround, 0.5) // #RRGGBBAA string
 ### 📜 License
 
 I release any of the code here to the public domain. Feel free to copy/paste in part or in full without attribution. Some parts of the codebase have been extracted from Chrome's devtools and stackoverflow, those contain a license notice or attribution in code comments, inline.
+
+<p align="center">
+  <small>🔴🟠🟡🟢🔵🟣</small>
+</p>
