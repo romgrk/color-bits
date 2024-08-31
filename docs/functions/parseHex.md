@@ -2,7 +2,7 @@
 
 ***
 
-[color-bits](../globals.md) / parseHex
+[color-bits](../README.md) / parseHex
 
 # Function: parseHex()
 
@@ -22,4 +22,4 @@ Hex color string: #xxx, #xxxxxx, #xxxxxxxx
 
 ## Defined in
 
-[parse.ts:50](https://github.com/romgrk/color-bits/blob/70d99503f1d547f1c592a245f7764ed94817ccb5/src/parse.ts#L50)
+[parse.ts:50](https://github.com/romgrk/color-bits/blob/fe184912ae718a47d92a2c4c68ad2db37ba77f3a/src/parse.ts#L50)

@@ -2,7 +2,7 @@
 
 ***
 
-[color-bits](../globals.md) / parseColor
+[color-bits](../README.md) / parseColor
 
 # Function: parseColor()
 
@@ -23,4 +23,4 @@ CSS color string: rgb(), rgba(), hsl(), hsla(), color()
 
 ## Defined in
 
-[parse.ts:98](https://github.com/romgrk/color-bits/blob/70d99503f1d547f1c592a245f7764ed94817ccb5/src/parse.ts#L98)
+[parse.ts:98](https://github.com/romgrk/color-bits/blob/fe184912ae718a47d92a2c4c68ad2db37ba77f3a/src/parse.ts#L98)

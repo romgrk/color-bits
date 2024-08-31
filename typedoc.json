@@ -1,4 +1,5 @@
 {
   "plugin": ["typedoc-plugin-markdown"],
-  "out": "./docs"
+  "out": "./docs",
+  "mergeReadme": true,
 }

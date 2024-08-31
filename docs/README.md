@@ -1,8 +1,10 @@
-[**color-bits**](README.md) • **Docs**
+**color-bits** • **Docs**
 
 ***
 
 # color-bits
+
+Fast & efficient color manipulation library.
 
 ## Type Aliases
 

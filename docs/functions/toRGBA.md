@@ -2,7 +2,7 @@
 
 ***
 
-[color-bits](../globals.md) / toRGBA
+[color-bits](../README.md) / toRGBA
 
 # Function: toRGBA()
 
@@ -34,4 +34,4 @@
 
 ## Defined in
 
-[format.ts:29](https://github.com/romgrk/color-bits/blob/70d99503f1d547f1c592a245f7764ed94817ccb5/src/format.ts#L29)
+[format.ts:29](https://github.com/romgrk/color-bits/blob/fe184912ae718a47d92a2c4c68ad2db37ba77f3a/src/format.ts#L29)

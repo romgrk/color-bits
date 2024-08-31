@@ -2,7 +2,7 @@
 
 ***
 
-[color-bits](../globals.md) / alpha
+[color-bits](../README.md) / alpha
 
 # Function: alpha()
 
@@ -26,4 +26,4 @@ Value in the range [0, 1]
 
 ## Defined in
 
-[transform.ts:16](https://github.com/romgrk/color-bits/blob/70d99503f1d547f1c592a245f7764ed94817ccb5/src/transform.ts#L16)
+[transform.ts:16](https://github.com/romgrk/color-bits/blob/fe184912ae718a47d92a2c4c68ad2db37ba77f3a/src/transform.ts#L16)

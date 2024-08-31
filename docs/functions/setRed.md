@@ -2,7 +2,7 @@
 
 ***
 
-[color-bits](../globals.md) / setRed
+[color-bits](../README.md) / setRed
 
 # Function: setRed()
 
@@ -20,4 +20,4 @@
 
 ## Defined in
 
-[core.ts:37](https://github.com/romgrk/color-bits/blob/70d99503f1d547f1c592a245f7764ed94817ccb5/src/core.ts#L37)
+[core.ts:37](https://github.com/romgrk/color-bits/blob/fe184912ae718a47d92a2c4c68ad2db37ba77f3a/src/core.ts#L37)

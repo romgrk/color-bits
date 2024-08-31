@@ -35,6 +35,9 @@ importers:
       ts-jest:
         specifier: ^29.2.5
         version: 29.2.5(@babel/core@7.25.2)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.25.2))(jest@29.7.0(@types/node@22.5.1))(typescript@5.5.4)
+      tsdoc-markdown:
+        specifier: ^0.6.0
+        version: 0.6.0(typescript@5.5.4)
       typedoc:
         specifier: ^0.26.6
         version: 0.26.6(typescript@5.5.4)
@@ -1727,6 +1730,12 @@ packages:
         optional: true
       esbuild:
         optional: true
+
+  tsdoc-markdown@0.6.0:
+    resolution: {integrity: sha512-5Xbdm+g+96fwEv8LCLs5c4iGkcrieKutvjiA7Edh3jVXmnOjT+h6l8FjJZPw/FTXsWWN9f5ZMdRIQkiHJ9UPMw==}
+    hasBin: true
+    peerDependencies:
+      typescript: ^5
 
   type-detect@4.0.8:
     resolution: {integrity: sha512-0fr/mIH1dlO+x7TlcMy+bIDqKPsw/70tVyeHW787goQjhmqaZe10uwLujubK9q9Lg6Fiho1KUKDYz0Z7k7g5/g==}
@@ -3949,6 +3958,10 @@ snapshots:
       '@jest/transform': 29.7.0
       '@jest/types': 29.6.3
       babel-jest: 29.7.0(@babel/core@7.25.2)
+
+  tsdoc-markdown@0.6.0(typescript@5.5.4):
+    dependencies:
+      typescript: 5.5.4
 
   type-detect@4.0.8: {}
 
