@@ -2,17 +2,23 @@
   color-bits
 </h1>
 
-<small>🔴🟠🟡🟢🔵🟣</small>
-
 <p align="center">
-  <a href="#benchmarks">Benchmarks</a> •
-  <a href="#install">Install</a> •
-  <a href="#technical-details">Technical details</a> •
-  <a href="#documentation">Documentation</a> •
-  <a href="#license">License</a>
+  <b>High-performance color library</b>
 </p>
 
-Fast & efficient color manipulation library, for high-performance critical applications. This library represents RGBA colors as a single `int32` number and avoids allocating memory as much as possible while parsing, handling, and formatting colors.
+This library represents RGBA colors as a single `int32` number and avoids allocating memory as much as possible while parsing, handling, and formatting colors, to provide the best possible memory and CPU efficiency.
+
+<p align="center">
+  <a href="#-benchmarks">Benchmarks</a> •
+  <a href="#-install">Install</a> •
+  <a href="#-technical-details">Technical details</a> •
+  <a href="#-documentation">Documentation</a> •
+  <a href="#-license">License</a>
+</p>
+
+<p align="center">
+  <small>🔴🟠🟡🟢🔵🟣</small>
+</p>
 
 ### ⚡ Benchmarks
 
