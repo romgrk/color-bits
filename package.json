@@ -23,6 +23,7 @@
   "publishConfig": {
     "ignore": [
       "!build/",
+      "docs/",
       "src/",
       "test/"
     ]
