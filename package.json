@@ -10,6 +10,7 @@
     "docs": "pnpm run docs:core && pnpm run docs:string",
     "docs:core": "typedoc --plugin typedoc-plugin-markdown --out ./docs ./src/index.ts",
     "docs:string": "typedoc --plugin typedoc-plugin-markdown --out ./docs/string ./src/string.ts",
+    "benchmark": "tsx ./benchmarks/index.ts",
     "test": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest --watch"
   },
   "exports": {
@@ -44,6 +45,7 @@
     "tinycolor2": "^1.6.0",
     "ts-jest": "^29.2.5",
     "tsdoc-markdown": "^0.6.0",
+    "tsx": "^4.19.0",
     "typedoc": "^0.26.6",
     "typedoc-plugin-markdown": "^4.2.6",
     "typescript": "^5.5.4"
