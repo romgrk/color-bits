@@ -163,30 +163,30 @@ export function parseColor(color: string): Color {
       return newColor(r, g, b, a);
     }
     case 'lab': {
-      const l = parsePercentageOrValue(p1);
-      const aa = parsePercentageOrValue(p2);
-      const b = parsePercentageOrValue(p3);
+      const l = parsePercentageFor(p1, 100);
+      const aa = parsePercentageFor(p2, 125);
+      const b = parsePercentageFor(p3, 125);
       const a = p4 ? parseAlphaChannel(p4) : 255;
       return newColorFromArray(a,
         convert.xyzd50ToSrgb(...convert.labToXyzd50(l, aa, b))
       )
     }
     case 'lch': {
-      const l = parsePercentageOrValue(p1);
-      const c = parsePercentageOrValue(p2);
-      const h = parsePercentageOrValue(p3);
+      const l = parsePercentageFor(p1, 100);
+      const c = parsePercentageFor(p2, 150);
+      const h = parseAngle(p3) * 360;
       const a = p4 ? parseAlphaChannel(p4) : 255;
       return newColorFromArray(a,
         convert.xyzd50ToSrgb(...convert.labToXyzd50(...convert.lchToLab(l, c, h)))
       )
     }
     case 'oklab': {
-      const l = parsePercentageOrValue(p1);
-      const aa = parsePercentageOrValue(p2);
-      const b = parsePercentageOrValue(p3);
+      const l = parsePercentageFor(p1, 1);
+      const aa = parsePercentageFor(p2, 0.4);
+      const b = parsePercentageFor(p3, 0.4);
       const a = p4 ? parseAlphaChannel(p4) : 255;
       return newColorFromArray(a,
-        convert.xyzd50ToSrgb(...convert.oklchToXyzd50(l, aa, b))
+        convert.xyzd50ToSrgb(...convert.xyzd65ToD50(...convert.oklabToXyzd65(l, aa, b)))
       )
     }
     case 'oklch': {
@@ -352,6 +352,20 @@ function parsePercentageOrValue(value: string): number {
   }
   if (value.charCodeAt(value.length - 1) === PERCENT) {
     return parseFloat(value) / 100;
+  }
+  return parseFloat(value);
+}
+
+/**
+ * Accepts: "100", "100%", "none"
+ * @returns a value in the -@range to @range range
+ */
+function parsePercentageFor(value: string, range: number): number {
+  if (value.charCodeAt(0) === N) {
+    return 0;
+  }
+  if (value.charCodeAt(value.length - 1) === PERCENT) {
+    return parseFloat(value) / 100 * range;
   }
   return parseFloat(value);
 }

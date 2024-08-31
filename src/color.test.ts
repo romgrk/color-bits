@@ -50,16 +50,28 @@ describe('Color', () => {
       expect(Color.parse('hwb(50deg 30% 40%)')).to.equal(c(0x998c4dff));
       expect(Color.parse('hwb(0.5turn 10% 0% / .5)')).to.equal(c(0x1affff80));
 
-      // FIXME:
-      // expect(Color.parse('lab(50% 40 59.5 / 0.5)')).to.equal(c(0xbf570080))
-      // expect(Color.parse('lch(52.2% 72.2 50 / 0.5)')).to.equal(c(0xcd561a80))
-
       expect(Color.parse('color(srgb         1 0.5 0 / 0.5)')).to.equal(c(0xff800080))
       expect(Color.parse('color(srgb-linear  1 0.5 0 / 0.5)')).to.equal(c(0xffbc0080))
       expect(Color.parse('color(display-p3   1 0.5 0 / 0.5)')).to.equal(c(0xff760080))
       expect(Color.parse('color(a98-rgb      1 0.5 0 / 0.5)')).to.equal(c(0xff810080))
       expect(Color.parse('color(prophoto-rgb 1 0.5 0 / 0.5)')).to.equal(c(0xff630080))
       expect(Color.parse('color(rec2020      1 0.5 0 / 0.5)')).to.equal(c(0xff720080))
+    });
+
+    it('parses lab()', () => {
+      expect(Color.format(Color.parse('lab(50% 40 59.5 / 0.5)'))).to.equal(Color.format(c(0xbf570080)))
+    });
+
+    it('parses lch()', () => {
+      expect(Color.format(Color.parse('lch(52.2% 72.2 50 / 0.5)'))).to.equal(Color.format(c(0xcd561a80)))
+    });
+
+    it('parses oklab()', () => {
+      expect(Color.format(Color.parse('oklab(40.1% 0.1143 0.045)'))).to.equal(Color.format(c(0x7d2429ff)))
+    });
+
+    it.only('parses oklch()', () => {
+      expect(Color.format(Color.parse('oklch(40.1% 0.123 21.57)'))).to.equal(Color.format(c(0x7d2429ff)))
     });
 
   });
