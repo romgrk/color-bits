@@ -15,7 +15,8 @@
   },
   "exports": {
     ".": "./build/index.js",
-    "./*": "./build/*"
+    "./*": "./build/*",
+    "./string": "./build/string.js"
   },
   "keywords": [],
   "author": "",
