@@ -1,6 +1,16 @@
-# color-bits
+<h1 align="center">
+  color-bits
+</h1>
 
 <small>🔴🟠🟡🟢🔵🟣</small>
+
+<p align="center">
+  <a href="#benchmarks">Benchmarks</a> •
+  <a href="#install">Install</a> •
+  <a href="#technical-details">Technical details</a> •
+  <a href="#documentation">Documentation</a> •
+  <a href="#license">License</a>
+</p>
 
 Fast & efficient color manipulation library, for high-performance critical applications. This library represents RGBA colors as a single `int32` number and avoids allocating memory as much as possible while parsing, handling, and formatting colors.
 
@@ -14,6 +24,12 @@ Fast & efficient color manipulation library, for high-performance critical appli
 | chroma-js      | 846 924        | 96.31% slower  |
 | color          | 799 262        | 96.52% slower  |
 
+### 🛠️ Install
+
+```sh
+pnpm install color-bits
+```
+
 ### 📑 Technical details
 
 Due to the compact representation, `color-bits` preserves **at most 8 bits of precision for each channel**, so an operation like `alpha(color, 0.000001)` would simply return the same color with no modification.
@@ -25,6 +41,11 @@ For performance reasons, the representation is `int32`, not `uint32`. It is expe
 Every function is tree-shakeable, so the bundle size cost should be from 1.5kb to 3kb, depending on which functions you use.
 
 <small>🔴🟠🟡🟢🔵🟣</small>
+
+### 📚 Documentation
+
+[Documentation: `'color-bits'`](https://github.com/romgrk/color-bits/tree/master/docs/README.md)  
+[Documentation: `'color-bits/string'`](https://github.com/romgrk/color-bits/tree/master/docs/string/README.md)  
 
 If you're storing and manipulating colors frequently, you should use the `color-bits` exports directly, e.g.
 
@@ -44,11 +65,6 @@ import * as Color from 'color-bits/string'
 const background = '#232323'
 const output = Color.alpha(backround, 0.5) // #RRGGBBAA string
 ```
-
-### 📚 Documentation
-
-[Documentation: `'color-bits'`](https://github.com/romgrk/color-bits/tree/master/docs/README.md)  
-[Documentation: `'color-bits/string'`](https://github.com/romgrk/color-bits/tree/master/docs/string/README.md)  
 
 ### 📜 License
 
