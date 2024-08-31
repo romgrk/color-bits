@@ -10,4 +10,4 @@
 
 ## Defined in
 
-[core.ts:10](https://github.com/romgrk/color-bits/blob/c5c0102ea19a813c9c975d4fbcf79d350814076c/src/core.ts#L10)
+[core.ts:10](https://github.com/romgrk/color-bits/blob/b365b323832db5ef849692fab31824cf62056780/src/core.ts#L10)

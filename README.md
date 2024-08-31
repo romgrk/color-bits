@@ -27,7 +27,7 @@ import * as Color from 'color-bits'
 
 const background = Color.parse('#232323')
 const seeThrough = Color.alpha(backround, 0.5)
-const output = Color.format(seeThrough)
+const output = Color.format(seeThrough) // #RRGGBBAA string
 ```
 
 The `color-bits/string` exports wrap some of the functions to accept string colors as input/output, which may be used if you're not storing the colors but just transforming them on the fly.
@@ -36,7 +36,7 @@ The `color-bits/string` exports wrap some of the functions to accept string colo
 import * as Color from 'color-bits/string'
 
 const background = '#232323'
-const output = Color.alpha(backround, 0.5)
+const output = Color.alpha(backround, 0.5) // #RRGGBBAA string
 ```
 
 [Documentation: `'color-bits'`](https://github.com/romgrk/color-bits/tree/master/docs/README.md)  

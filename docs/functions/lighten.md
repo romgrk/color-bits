@@ -26,4 +26,4 @@ Multiplier in the range [0, 1]
 
 ## Defined in
 
-[functions.ts:41](https://github.com/romgrk/color-bits/blob/c5c0102ea19a813c9c975d4fbcf79d350814076c/src/functions.ts#L41)
+[functions.ts:41](https://github.com/romgrk/color-bits/blob/b365b323832db5ef849692fab31824cf62056780/src/functions.ts#L41)

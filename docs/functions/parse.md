@@ -22,4 +22,4 @@ CSS color string: #xxx, #xxxxxx, #xxxxxxxx, rgb(), rgba(), hsl(), hsla(), color(
 
 ## Defined in
 
-[parse.ts:38](https://github.com/romgrk/color-bits/blob/c5c0102ea19a813c9c975d4fbcf79d350814076c/src/parse.ts#L38)
+[parse.ts:38](https://github.com/romgrk/color-bits/blob/b365b323832db5ef849692fab31824cf62056780/src/parse.ts#L38)
