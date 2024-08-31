@@ -6,7 +6,7 @@
 
 # Function: darken()
 
-> **darken**(`color`, `value`): `number`
+> **darken**(`color`, `value`): `string`
 
 ## Parameters
 
@@ -16,8 +16,8 @@
 
 ## Returns
 
-`number`
+`string`
 
 ## Defined in
 
-[string.ts:6](https://github.com/romgrk/color-bits/blob/6c428e1ab4b8b76244d3d1d4aa96dd5b4309b135/src/string.ts#L6)
+[string.ts:14](https://github.com/romgrk/color-bits/blob/c5c0102ea19a813c9c975d4fbcf79d350814076c/src/string.ts#L14)

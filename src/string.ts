@@ -1,7 +1,15 @@
-import { from } from './core'
-import { parse } from './parse'
-import * as Transform from './transform'
+import * as Color from './'
 
-export function alpha(color: string, value: number) { return from(Transform.alpha(parse(color), value)) }
-export function darken(color: string, value: number) { return from(Transform.darken(parse(color), value)) }
-export function lighten(color: string, value: number) { return from(Transform.lighten(parse(color), value)) }
+const {
+  format,
+  parse,
+  alpha: alphaBase,
+  blend: blendBase,
+  darken: darkenBase,
+  lighten: lightenBase,
+} = Color
+
+export function alpha(color: string, value: number) { return format(alphaBase(parse(color), value)) }
+export function blend(background: string, overlay: string, opacity: number, gamma: number) { return format(blendBase(parse(background), parse(overlay), opacity, gamma)) }
+export function darken(color: string, value: number) { return format(darkenBase(parse(color), value)) }
+export function lighten(color: string, value: number) { return format(lightenBase(parse(color), value)) }

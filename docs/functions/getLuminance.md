@@ -10,7 +10,6 @@
 
 The relative brightness of any point in a color space, normalized to 0 for
 darkest black and 1 for lightest white.
-Formula: https://www.w3.org/TR/WCAG20-TECHS/G17.html#G17-tests
 
 ## Parameters
 
@@ -20,8 +19,8 @@ Formula: https://www.w3.org/TR/WCAG20-TECHS/G17.html#G17-tests
 
 `number`
 
-The relative brightness of the color in the range 0 - 1
+The relative brightness of the color in the range 0 - 1, with 3 digits precision
 
 ## Defined in
 
-[functions.ts:14](https://github.com/romgrk/color-bits/blob/fe184912ae718a47d92a2c4c68ad2db37ba77f3a/src/functions.ts#L14)
+[functions.ts:78](https://github.com/romgrk/color-bits/blob/c5c0102ea19a813c9c975d4fbcf79d350814076c/src/functions.ts#L78)

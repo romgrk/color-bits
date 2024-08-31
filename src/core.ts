@@ -1,4 +1,6 @@
-import { cast, get, set } from './bit';
+import * as bit from './bit'
+
+const { cast, get, set } = bit
 
 export type Color = number;
 

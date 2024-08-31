@@ -1,4 +1,7 @@
-import { Color, getRed, getGreen, getBlue, getAlpha } from './core';
+import type { Color } from './core';
+import * as core from './core'
+
+const { getRed, getGreen, getBlue, getAlpha } = core
 
 // Return buffer, avoid allocations
 const buffer = [0, 0, 0]

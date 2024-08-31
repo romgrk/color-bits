@@ -18,4 +18,4 @@
 
 ## Defined in
 
-[format.ts:25](https://github.com/romgrk/color-bits/blob/fe184912ae718a47d92a2c4c68ad2db37ba77f3a/src/format.ts#L25)
+[format.ts:28](https://github.com/romgrk/color-bits/blob/c5c0102ea19a813c9c975d4fbcf79d350814076c/src/format.ts#L28)
