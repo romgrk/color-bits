@@ -22,4 +22,4 @@ Hex color string: #xxx, #xxxxxx, #xxxxxxxx
 
 ## Defined in
 
-[parse.ts:50](https://github.com/romgrk/color-bits/blob/b365b323832db5ef849692fab31824cf62056780/src/parse.ts#L50)
+[parse.ts:50](https://github.com/romgrk/color-bits/blob/46654221c2bd18a43f39bdeed108b1969f1dad41/src/parse.ts#L50)

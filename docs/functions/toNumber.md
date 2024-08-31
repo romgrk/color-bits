@@ -8,6 +8,9 @@
 
 > **toNumber**(`color`): `number`
 
+Turns the color into its equivalent number representation.
+This is essentially a cast from int32 to uint32.
+
 ## Parameters
 
 • **color**: `number`
@@ -18,4 +21,4 @@
 
 ## Defined in
 
-[core.ts:30](https://github.com/romgrk/color-bits/blob/b365b323832db5ef849692fab31824cf62056780/src/core.ts#L30)
+[core.ts:41](https://github.com/romgrk/color-bits/blob/46654221c2bd18a43f39bdeed108b1969f1dad41/src/core.ts#L41)

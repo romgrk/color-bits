@@ -8,7 +8,7 @@
 
 > **format**(`color`): `string`
 
-Format as hexadecimal value
+Format to a #RRGGBBAA string
 
 ## Parameters
 
@@ -20,4 +20,4 @@ Format as hexadecimal value
 
 ## Defined in
 
-[format.ts:18](https://github.com/romgrk/color-bits/blob/b365b323832db5ef849692fab31824cf62056780/src/format.ts#L18)
+[format.ts:18](https://github.com/romgrk/color-bits/blob/46654221c2bd18a43f39bdeed108b1969f1dad41/src/format.ts#L18)

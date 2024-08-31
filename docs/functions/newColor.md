@@ -8,6 +8,9 @@
 
 > **newColor**(`r`, `g`, `b`, `a`): `number`
 
+Creates a new color from the given RGBA components.
+Every component should be in the [0, 255] range.
+
 ## Parameters
 
 • **r**: `number`
@@ -24,4 +27,4 @@
 
 ## Defined in
 
-[core.ts:12](https://github.com/romgrk/color-bits/blob/b365b323832db5ef849692fab31824cf62056780/src/core.ts#L12)
+[core.ts:16](https://github.com/romgrk/color-bits/blob/46654221c2bd18a43f39bdeed108b1969f1dad41/src/core.ts#L16)
