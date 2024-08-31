@@ -9,6 +9,10 @@ export const OFFSET_G = 16;
 export const OFFSET_B =  8;
 export const OFFSET_A =  0;
 
+/**
+ * Creates a new color from the given RGBA components.
+ * Every component should be in the [0, 255] range.
+ */
 export function newColor(r: number, g: number, b: number, a: number) {
   return (
     (r << OFFSET_R) +
@@ -18,15 +22,22 @@ export function newColor(r: number, g: number, b: number, a: number) {
   );
 }
 
-export function from(hex: number) {
+/**
+ * Creates a new color from the given number value, e.g. 0x599eff.
+ */
+export function from(color: number) {
   return newColor(
-    get(hex, OFFSET_R),
-    get(hex, OFFSET_G),
-    get(hex, OFFSET_B),
-    get(hex, OFFSET_A),
+    get(color, OFFSET_R),
+    get(color, OFFSET_G),
+    get(color, OFFSET_B),
+    get(color, OFFSET_A),
   );
 }
 
+/**
+ * Turns the color into its equivalent number representation.
+ * This is essentially a cast from int32 to uint32.
+ */
 export function toNumber(color: Color) {
   return cast(color);
 }

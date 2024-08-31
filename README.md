@@ -16,11 +16,17 @@ Fast & efficient color manipulation library, for high-performance critical appli
 
 ### 📑 Technical details
 
-Due to the compact representation, `color-bits` preserves **at most 8 bits of precision for each channel**, so an operation like `alpha(color, 0.000001)` would simply return the same color with no modification. `color-bits` supports the full **CSS Color Module Level 4** color spaces *in absolute representations only*, so `oklab(59.69% 0.1007 0.1191)` yes, `oklab(from green l a b / 0.5)` no. When parsing and converting non-sRGB color spaces, `color-bits` behaves the same as browsers behave, which differs from the formal CSS spec! In technical terms: non-sRGB color spaces with a wide gamut are converted using clipping rather than gamut-mapping.
+Due to the compact representation, `color-bits` preserves **at most 8 bits of precision for each channel**, so an operation like `alpha(color, 0.000001)` would simply return the same color with no modification.
+
+`color-bits` supports the full **CSS Color Module Level 4** color spaces *in absolute representations only*, so `oklab(59.69% 0.1007 0.1191)` yes, `oklab(from green l a b / 0.5)` no. When parsing and converting non-sRGB color spaces, `color-bits` behaves the same as browsers behave, which differs from the formal CSS spec! In technical terms: non-sRGB color spaces with a wider gamut are converted using clipping rather than gamut-mapping.
+
+For performance reasons, the representation is `int32`, not `uint32`. It is expected if you see negative numbers when you print the color value.
+
+Every function is tree-shakeable, so the bundle size cost should be from 1.5kb to 3kb, depending on which functions you use.
 
 <small>🔴🟠🟡🟢🔵🟣</small>
 
-For efficient manipulation, you should use the `color-bits` exports directly, e.g.
+If you're storing and manipulating colors frequently, you should use the `color-bits` exports directly, e.g.
 
 ```tsx
 import * as Color from 'color-bits'
@@ -39,5 +45,11 @@ const background = '#232323'
 const output = Color.alpha(backround, 0.5) // #RRGGBBAA string
 ```
 
+### 📚 Documentation
+
 [Documentation: `'color-bits'`](https://github.com/romgrk/color-bits/tree/master/docs/README.md)  
 [Documentation: `'color-bits/string'`](https://github.com/romgrk/color-bits/tree/master/docs/string/README.md)  
+
+### 📜 License
+
+I release any of the code here to the public domain. Feel free to copy/paste in part or in full without attribution. Some parts of the codebase have been extracted from Chrome's devtools and stackoverflow, those contain a license notice or attribution in code comments, inline.

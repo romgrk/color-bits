@@ -14,7 +14,7 @@ const FORMAT_HEX =
   Array.from({ length: 256 })
     .map((_, byte) => byte.toString(16).padStart(2, '0'))
 
-/** Format as hexadecimal value */
+/** Format to a #RRGGBBAA string */
 export function format(color: Color): string {
   return (
     '#' +
