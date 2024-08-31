@@ -19,7 +19,8 @@ const PATTERN = (() => {
 
   return new RegExp(
     `${NAME}\\(
-      ${SEPARATOR}*${VALUE}
+      ${SEPARATOR}*
+      ${VALUE}
       ${SEPARATOR_THEN_VALUE}
       ${SEPARATOR_THEN_VALUE}
       ${SEPARATOR_THEN_VALUE}?

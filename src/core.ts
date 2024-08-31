@@ -38,21 +38,3 @@ export function setRed(c: Color, value: number) { return set(c, OFFSET_R, value)
 export function setGreen(c: Color, value: number) { return set(c, OFFSET_G, value); }
 export function setBlue(c: Color, value: number) { return set(c, OFFSET_B, value); }
 export function setAlpha(c: Color, value: number) { return set(c, OFFSET_A, value); }
-
-/**
- * Map 8-bits value to its hexadecimal representation
- * ['00', '01', '02', ..., 'fe', 'ff']
- */
-const FORMAT_HEX =
-  Array.from({ length: 256 })
-    .map((_, byte) => byte.toString(16).padStart(2, '0'))
-
-export function format(color: Color): string {
-  /*
-   * Implementing this as `cast(color).toString(16).padStart(8, '0')` would be simpler,
-   * but `cast()` makes the color a non-Smi value on V8, as well as allocates more strings
-   * and makes more function calls.
-   * This version is about 4 times faster than the simple one.
-   */
-  return '#' + FORMAT_HEX[getRed(color)] + FORMAT_HEX[getGreen(color)] + FORMAT_HEX[getBlue(color)] + FORMAT_HEX[getAlpha(color)];
-}

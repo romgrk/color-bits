@@ -2,6 +2,7 @@
   "name": "color-bits",
   "version": "0.2.0",
   "main": "index.js",
+  "sideEffects": false,
   "scripts": {
     "prepack": "pnpm run build && npmignore --auto",
     "build": "tsc",
