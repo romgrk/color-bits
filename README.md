@@ -72,7 +72,7 @@ const output = Color.alpha(backround, 0.5) // #RRGGBBAA string
 
 ### 📜 License
 
-I release any of the code here to the public domain. Feel free to copy/paste in part or in full without attribution. Some parts of the codebase have been extracted from Chrome's devtools and stackoverflow, those contain a license notice or attribution in code comments, inline.
+I release any of the code here to the public domain. Feel free to copy/paste in part or in full without attribution. Some parts of the codebase have been extracted from Chrome's devtools, MaterialUI, and stackoverflow, those contain a license notice or attribution in code comments, inline.
 
 <p align="center">
   <small>🔴🟠🟡🟢🔵🟣</small>
