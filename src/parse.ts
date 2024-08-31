@@ -47,33 +47,33 @@ export function parse(color: string): Color {
  * Parse hexadecimal CSS color
  * @param color Hex color string: #xxx, #xxxxxx, #xxxxxxxx
  */
-export function parseHex(hex: string): Color {
+export function parseHex(color: string): Color {
   let r = 0x00;
   let g = 0x00;
   let b = 0x00;
   let a = 0xff;
 
-  switch (hex.length) {
+  switch (color.length) {
     // #59f
     case 4: {
-      r = (hexValue(hex.charCodeAt(1)) << 4) + hexValue(hex.charCodeAt(1));
-      g = (hexValue(hex.charCodeAt(2)) << 4) + hexValue(hex.charCodeAt(2));
-      b = (hexValue(hex.charCodeAt(3)) << 4) + hexValue(hex.charCodeAt(3));
+      r = (hexValue(color.charCodeAt(1)) << 4) + hexValue(color.charCodeAt(1));
+      g = (hexValue(color.charCodeAt(2)) << 4) + hexValue(color.charCodeAt(2));
+      b = (hexValue(color.charCodeAt(3)) << 4) + hexValue(color.charCodeAt(3));
       break;
     }
     // #5599ff
     case 7: {
-      r = (hexValue(hex.charCodeAt(1)) << 4) + hexValue(hex.charCodeAt(2));
-      g = (hexValue(hex.charCodeAt(3)) << 4) + hexValue(hex.charCodeAt(4));
-      b = (hexValue(hex.charCodeAt(5)) << 4) + hexValue(hex.charCodeAt(6));
+      r = (hexValue(color.charCodeAt(1)) << 4) + hexValue(color.charCodeAt(2));
+      g = (hexValue(color.charCodeAt(3)) << 4) + hexValue(color.charCodeAt(4));
+      b = (hexValue(color.charCodeAt(5)) << 4) + hexValue(color.charCodeAt(6));
       break;
     }
     // #5599ff88
     case 9: {
-      r = (hexValue(hex.charCodeAt(1)) << 4) + hexValue(hex.charCodeAt(2));
-      g = (hexValue(hex.charCodeAt(3)) << 4) + hexValue(hex.charCodeAt(4));
-      b = (hexValue(hex.charCodeAt(5)) << 4) + hexValue(hex.charCodeAt(6));
-      a = (hexValue(hex.charCodeAt(7)) << 4) + hexValue(hex.charCodeAt(8));
+      r = (hexValue(color.charCodeAt(1)) << 4) + hexValue(color.charCodeAt(2));
+      g = (hexValue(color.charCodeAt(3)) << 4) + hexValue(color.charCodeAt(4));
+      b = (hexValue(color.charCodeAt(5)) << 4) + hexValue(color.charCodeAt(6));
+      a = (hexValue(color.charCodeAt(7)) << 4) + hexValue(color.charCodeAt(8));
       break;
     }
     default: {
