@@ -40,7 +40,11 @@ pnpm install color-bits
 
 Due to the compact representation, `color-bits` preserves **at most 8 bits of precision for each channel**, so an operation like `alpha(color, 0.000001)` would simply return the same color with no modification.
 
-`color-bits` supports the full **CSS Color Module Level 4** color spaces *in absolute representations only*, so `oklab(59.69% 0.1007 0.1191)` yes, `oklab(from green l a b / 0.5)` no. When parsing and converting non-sRGB color spaces, `color-bits` behaves the same as browsers behave, which differs from the formal CSS spec! In technical terms: non-sRGB color spaces with a wider gamut are converted using clipping rather than gamut-mapping.
+`color-bits` supports the full **CSS Color Module Level 4** color spaces *in absolute representations only*, so:
+ - ✅ Yes: `oklab(59.69% 0.1007 0.1191)`
+ - ❌ No: `oklab(from green l a b / 0.5)`
+
+When parsing and converting non-sRGB color spaces, `color-bits` behaves the same as browsers behave, which differs from the formal CSS spec! In technical terms: non-sRGB color spaces with a wider gamut are converted using clipping rather than gamut-mapping.
 
 For performance reasons, the representation is `int32`, not `uint32`. It is expected if you see negative numbers when you print the color value.
 
