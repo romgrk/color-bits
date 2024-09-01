@@ -1,6 +1,6 @@
 {
   "name": "color-bits",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "main": "index.js",
   "sideEffects": false,
   "scripts": {
@@ -18,7 +18,10 @@
     "./*": "./build/*",
     "./string": "./build/string.js"
   },
-  "keywords": ["color", "colors"],
+  "keywords": [
+    "color",
+    "colors"
+  ],
   "author": "",
   "license": "ISC",
   "description": "High performance color library",
