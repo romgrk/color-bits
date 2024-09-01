@@ -18,10 +18,10 @@
     "./*": "./build/*",
     "./string": "./build/string.js"
   },
-  "keywords": [],
+  "keywords": ["color", "colors"],
   "author": "",
   "license": "ISC",
-  "description": "",
+  "description": "High performance color library",
   "publishConfig": {
     "ignore": [
       "!build/",
