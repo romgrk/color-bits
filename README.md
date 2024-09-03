@@ -77,7 +77,7 @@ const output = Color.alpha('#232323', 0.5) // #RRGGBBAA string
 
 I release any of the code I wrote here to the public domain. Feel free to copy/paste in part or in full without attribution.
 
-Some parts of the codebase have been extracted from Chrome's devtools, MaterialUI, and stackoverflow, those contain a license notice or attribution in code comments, inline.
+Some parts of the codebase have been extracted from Chrome's devtools, MaterialUI, and stackoverflow, those contain a license notice or attribution in code comments, inline. Everything is MIT-compatible.
 
 <p align="center">
   <small>🔴🟠🟡🟢🔵🟣</small>
