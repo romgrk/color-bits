@@ -65,13 +65,12 @@ const seeThrough = Color.alpha(background, 0.5)
 const output = Color.format(seeThrough) // #RRGGBBAA string
 ```
 
-The `color-bits/string` exports wrap some of the functions to accept string colors as input/output, which may be used if you're not storing the colors but just transforming them on the fly.
+The `color-bits/string` module wraps some of the functions to accept string colors as input/output, which may be useful if you're not storing the colors but just transforming them on the fly. It can be faster than calling the functions yourself like the example above in some cases.
 
 ```tsx
 import * as Color from 'color-bits/string'
 
-const background = '#232323'
-const output = Color.alpha(background, 0.5) // #RRGGBBAA string
+const output = Color.alpha('#232323', 0.5) // #RRGGBBAA string
 ```
 
 ### 📜 License
