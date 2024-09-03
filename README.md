@@ -44,7 +44,7 @@ Due to the compact representation, `color-bits` preserves **at most 8 bits of pr
  - Yes: `oklab(59.69% 0.1007 0.1191)`
  - No: `oklab(from green l a b / 0.5)`
 
-When parsing and converting non-sRGB color spaces, `color-bits` behaves the same as browsers behave, which differs from the formal CSS spec! In technical terms: non-sRGB color spaces with a wider gamut are converted using clipping rather than gamut-mapping.
+When parsing and converting non-sRGB color spaces, `color-bits` behaves the same as browsers do, which differs from the formal CSS spec! In technical terms: non-sRGB color spaces with a wider gamut are converted using clipping rather than gamut-mapping.
 
 For performance reasons, the representation is `int32`, not `uint32`. It is expected if you see negative numbers when you print the color value.
 
