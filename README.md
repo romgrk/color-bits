@@ -52,8 +52,8 @@ Every function is tree-shakeable, so the bundle size cost should be from 1.5kb t
 
 ### 📚 Documentation
 
-[Documentation: `'color-bits'`](https://github.com/romgrk/color-bits/tree/master/docs/README.md)  
-[Documentation: `'color-bits/string'`](https://github.com/romgrk/color-bits/tree/master/docs/string/README.md)  
+[Docs for color-bits](https://github.com/romgrk/color-bits/tree/master/docs/README.md)  
+[Docs for color-bits/string](https://github.com/romgrk/color-bits/tree/master/docs/string/README.md)  
 
 If you're storing and manipulating colors frequently, you should use the `color-bits` exports directly, e.g.
 
@@ -61,7 +61,7 @@ If you're storing and manipulating colors frequently, you should use the `color-
 import * as Color from 'color-bits'
 
 const background = Color.parse('#232323')
-const seeThrough = Color.alpha(backround, 0.5)
+const seeThrough = Color.alpha(background, 0.5)
 const output = Color.format(seeThrough) // #RRGGBBAA string
 ```
 
@@ -71,7 +71,7 @@ The `color-bits/string` exports wrap some of the functions to accept string colo
 import * as Color from 'color-bits/string'
 
 const background = '#232323'
-const output = Color.alpha(backround, 0.5) // #RRGGBBAA string
+const output = Color.alpha(background, 0.5) // #RRGGBBAA string
 ```
 
 ### 📜 License
