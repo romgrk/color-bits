@@ -18,6 +18,7 @@
     "./*": "./build/*",
     "./string": "./build/string.js"
   },
+  "types": "./build/index.d.ts",
   "keywords": [
     "color",
     "colors"
