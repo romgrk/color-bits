@@ -1,7 +1,7 @@
 {
   "name": "color-bits",
   "version": "1.0.4",
-  "main": "index.js",
+  "main": "./build/index.js",
   "sideEffects": false,
   "scripts": {
     "prepack": "pnpm run build && npmignore --auto",
