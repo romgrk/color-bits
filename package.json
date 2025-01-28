@@ -1,6 +1,6 @@
 {
   "name": "color-bits",
-  "version": "1.0.5",
+  "version": "1.1.0",
   "main": "./build/index.js",
   "sideEffects": false,
   "scripts": {
