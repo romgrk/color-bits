@@ -38,4 +38,4 @@ Gamma correction coefficient. `1.0` to match browser behavior, `2.2` for gamma-c
 
 ## Defined in
 
-[functions.ts:62](https://github.com/romgrk/color-bits/blob/46654221c2bd18a43f39bdeed108b1969f1dad41/src/functions.ts#L62)
+[functions.ts:62](https://github.com/romgrk/color-bits/blob/e6e18569fa37645f22dd4f4c831dece10d0dd00b/src/functions.ts#L62)

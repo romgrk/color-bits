@@ -15,13 +15,25 @@ const FORMAT_HEX =
     .map((_, byte) => byte.toString(16).padStart(2, '0'))
 
 /** Format to a #RRGGBBAA string */
-export function format(color: Color): string {
+export const format = formatHEXA;
+
+/** Format to a #RRGGBBAA string */
+export function formatHEXA(color: Color): string {
   return (
     '#' +
     FORMAT_HEX[getRed(color)] +
     FORMAT_HEX[getGreen(color)] +
     FORMAT_HEX[getBlue(color)] +
     FORMAT_HEX[getAlpha(color)]
+  )
+}
+
+export function formatHEX(color: Color): string {
+  return (
+    '#' +
+    FORMAT_HEX[getRed(color)] +
+    FORMAT_HEX[getGreen(color)] +
+    FORMAT_HEX[getBlue(color)]
   )
 }
 

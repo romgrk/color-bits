@@ -21,6 +21,8 @@
 - [blend](functions/blend.md)
 - [darken](functions/darken.md)
 - [format](functions/format.md)
+- [formatHEX](functions/formatHEX.md)
+- [formatHEXA](functions/formatHEXA.md)
 - [formatHSLA](functions/formatHSLA.md)
 - [formatHWBA](functions/formatHWBA.md)
 - [formatRGBA](functions/formatRGBA.md)
