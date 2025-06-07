@@ -3,6 +3,11 @@
   "version": "1.1.0",
   "main": "./build/index.js",
   "sideEffects": false,
+  "homepage": "https://github.com/romgrk/color-bits",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/romgrk/color-bits.git"
+  },
   "scripts": {
     "prepack": "pnpm run build && npmignore --auto",
     "build": "tsc",
