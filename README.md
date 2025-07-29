@@ -6,7 +6,7 @@
   <b>High-performance color library</b>
 </p>
 
-This library represents RGBA colors as a single `int32` number and avoids allocating memory as much as possible while parsing, handling, and formatting colors, to provide the best possible memory and CPU efficiency.
+This library represents RGBA colors as a single `int32` number and avoids allocating memory as much as possible while parsing, handling, and formatting colors, to provide the best possible memory and CPU efficiency. For a full technical overview, [read the blog post](https://romgrk.com/posts/color-bits/).
 
 <p align="center">
   <a href="#-benchmarks">Benchmarks</a> •
@@ -38,15 +38,15 @@ pnpm install color-bits
 
 ### 📑 Technical details
 
-Due to the compact representation, `color-bits` preserves **at most 8 bits of precision for each channel**, so an operation like `alpha(color, 0.000001)` would simply return the same color with no modification.
+Due to the compact representation, `color-bits` preserves **at most 8 bits of precision for each channel**, so an operation like `lighten(color, 0.000001)` would simply return the same color with no modification.
+
+For performance reasons, the color representation is `int32`, not `uint32`. It is expected if you see negative numbers when you print the raw color value. Use the formatting functions to transform the color representation back into a usable format.
 
 `color-bits` supports the full **CSS Color Module Level 4** color spaces **in absolute representations only**, so:
  - Yes: `oklab(59.69% 0.1007 0.1191)`
  - No: `oklab(from green l a b / 0.5)`
 
 When parsing and converting non-sRGB color spaces, `color-bits` behaves the same as browsers do, which differs from the formal CSS spec! In technical terms: non-sRGB color spaces with a wider gamut are converted using clipping rather than gamut-mapping.
-
-For performance reasons, the representation is `int32`, not `uint32`. It is expected if you see negative numbers when you print the color value.
 
 Every function is tree-shakeable, so the bundle size cost should be from 1.5kb to 3kb, depending on which functions you use.
 
