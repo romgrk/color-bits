@@ -1,12 +1,23 @@
 import { Color, newColor } from './core';
-import * as convert from './convert'
+import {
+  hslToColor,
+  hwbToColor,
+  labToColor,
+  lchToColor,
+  oklabToColor,
+  oklchToColor,
+  colorSpaceToColor,
+} from './channels'
+import {
+  parseColorChannel,
+  parseAlphaChannel,
+  parseAngle,
+  parsePercent,
+  parsePercentageOrValue,
+  parseNumberOrPercentage,
+} from './units'
 
 const HASH = '#'.charCodeAt(0);
-const PERCENT = '%'.charCodeAt(0);
-const G = 'g'.charCodeAt(0);
-const N = 'n'.charCodeAt(0);
-const D = 'd'.charCodeAt(0);
-const E = 'e'.charCodeAt(0);
 
 /**
  * Approximative CSS colorspace string pattern, e.g. rgb(), color()
@@ -32,7 +43,9 @@ const PATTERN = (() => {
 
 
 /**
- * Parse CSS color
+ * Parse CSS color. Fast path: supports hexadecimal and the absolute forms of
+ * every CSS color function. For named colors, relative colors (`from …`) and
+ * `color-mix()`, use `parseCSS` from `color-bits/css`.
  * @param color CSS color string: #xxx, #xxxxxx, #xxxxxxxx, rgb(), rgba(), hsl(), hsla(), color()
  */
 export function parse(color: string): Color {
@@ -108,6 +121,11 @@ export function parseColor(color: string): Color {
   const p4 = match[5];
   const p5 = match[6];
 
+  // Relative colors (`rgb(from …)`) are not handled by the fast path.
+  if (p1 === 'from') {
+    throw new Error(`Color.parse(): relative colors require parseCSS() from "color-bits/css": "${color}"`);
+  }
+
   switch (format) {
     case 'rgb':
     case 'rgba': {
@@ -121,287 +139,67 @@ export function parseColor(color: string): Color {
     case 'hsl':
     case 'hsla': {
       const h = parseAngle(p1);
-      const s = parsePercentage(p2);
-      const l = parsePercentage(p3);
+      const s = parsePercent(p2);
+      const l = parsePercent(p3);
       const a = p4 ? parseAlphaChannel(p4) : 255;
 
-      // https://stackoverflow.com/a/9493060/3112706
-      let r, g, b;
-      if (s === 0) {
-        r = g = b = Math.round(l * 255); // achromatic
-      } else {
-        const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-        const p = 2 * l - q;
-        r = Math.round(hueToRGB(p, q, h + 1 / 3) * 255);
-        g = Math.round(hueToRGB(p, q, h) * 255);
-        b = Math.round(hueToRGB(p, q, h - 1 / 3) * 255);
-      }
-
-      return newColor(r, g, b, a);
+      return hslToColor(h, s, l, a);
     }
     case 'hwb': {
       const h = parseAngle(p1);
-      const w = parsePercentage(p2);
-      const bl = parsePercentage(p3);
+      const w = parsePercent(p2);
+      const b = parsePercent(p3);
       const a = p4 ? parseAlphaChannel(p4) : 255;
 
-      /* https://drafts.csswg.org/css-color/#hwb-to-rgb */
-      const s = 1.0;
-      const l = 0.5;
-
-      // Same as HSL to RGB
-      const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-      const p = 2 * l - q;
-      let r = Math.round(hueToRGB(p, q, h + 1 / 3) * 255);
-      let g = Math.round(hueToRGB(p, q, h) * 255);
-      let b = Math.round(hueToRGB(p, q, h - 1 / 3) * 255);
-
-      // Then HWB
-      r = hwbApply(r, w, bl);
-      g = hwbApply(g, w, bl);
-      b = hwbApply(b, w, bl);
-
-      return newColor(r, g, b, a);
+      return hwbToColor(h, w, b, a);
     }
     case 'lab': {
-      const l = parsePercentageFor(p1, 100);
-      const aa = parsePercentageFor(p2, 125);
-      const b = parsePercentageFor(p3, 125);
+      const l = parseNumberOrPercentage(p1, 100);
+      const aa = parseNumberOrPercentage(p2, 125);
+      const b = parseNumberOrPercentage(p3, 125);
       const a = p4 ? parseAlphaChannel(p4) : 255;
-      return newColorFromArray(a,
-        convert.xyzd50ToSrgb(...convert.labToXyzd50(l, aa, b))
-      )
+
+      return labToColor(l, aa, b, a);
     }
     case 'lch': {
-      const l = parsePercentageFor(p1, 100);
-      const c = parsePercentageFor(p2, 150);
-      const h = parseAngle(p3) * 360;
+      const l = parseNumberOrPercentage(p1, 100);
+      const c = parseNumberOrPercentage(p2, 150);
+      const h = parseAngle(p3);
       const a = p4 ? parseAlphaChannel(p4) : 255;
-      return newColorFromArray(a,
-        convert.xyzd50ToSrgb(...convert.labToXyzd50(...convert.lchToLab(l, c, h)))
-      )
+
+      return lchToColor(l, c, h, a);
     }
     case 'oklab': {
-      const l = parsePercentageFor(p1, 1);
-      const aa = parsePercentageFor(p2, 0.4);
-      const b = parsePercentageFor(p3, 0.4);
+      const l = parseNumberOrPercentage(p1, 1);
+      const aa = parseNumberOrPercentage(p2, 0.4);
+      const b = parseNumberOrPercentage(p3, 0.4);
       const a = p4 ? parseAlphaChannel(p4) : 255;
-      return newColorFromArray(a,
-        convert.xyzd50ToSrgb(...convert.xyzd65ToD50(...convert.oklabToXyzd65(l, aa, b)))
-      )
+
+      return oklabToColor(l, aa, b, a);
     }
     case 'oklch': {
-      const l = parsePercentageOrValue(p1);
-      const c = parsePercentageOrValue(p2);
-      const h = parsePercentageOrValue(p3);
+      const l = parseNumberOrPercentage(p1, 1);
+      const c = parseNumberOrPercentage(p2, 0.4);
+      const h = parseAngle(p3);
       const a = p4 ? parseAlphaChannel(p4) : 255;
-      return newColorFromArray(a,
-        convert.xyzd50ToSrgb(...convert.oklchToXyzd50(l, c, h))
-      )
+
+      return oklchToColor(l, c, h, a);
     }
     case 'color': {
       // https://drafts.csswg.org/css-color-4/#color-function
-
       const colorspace = p1;
       const c1 = parsePercentageOrValue(p2);
       const c2 = parsePercentageOrValue(p3);
       const c3 = parsePercentageOrValue(p4);
       const a = p5 ? parseAlphaChannel(p5) : 255;
 
-      switch (colorspace) {
-        // RGB color spaces
-        case 'srgb': {
-          return newColorFromArray(a, 
-            [c1, c2, c3]
-          )
-        }
-        case 'srgb-linear': {
-          return newColorFromArray(a, 
-            convert.xyzd50ToSrgb(...convert.srgbLinearToXyzd50(c1, c2, c3))
-          )
-        }
-        case 'display-p3': {
-          return newColorFromArray(a, 
-            convert.xyzd50ToSrgb(...convert.displayP3ToXyzd50(c1, c2, c3))
-          )
-        }
-        case 'a98-rgb': {
-          return newColorFromArray(a, 
-            convert.xyzd50ToSrgb(...convert.adobeRGBToXyzd50(c1, c2, c3))
-          )
-        }
-        case 'prophoto-rgb': {
-          return newColorFromArray(a, 
-            convert.xyzd50ToSrgb(...convert.proPhotoToXyzd50(c1, c2, c3))
-          )
-        }
-        case 'rec2020': {
-          return newColorFromArray(a, 
-            convert.xyzd50ToSrgb(...convert.rec2020ToXyzd50(c1, c2, c3))
-          )
-        }
-        // XYZ color spaces
-        case 'xyz':
-        case 'xyz-d65': {
-          return newColorFromArray(a, 
-            convert.xyzd50ToSrgb(...convert.xyzd65ToD50(c1, c2, c3))
-          )
-        }
-        case 'xyz-d50': {
-          return newColorFromArray(a, 
-            convert.xyzd50ToSrgb(c1, c2, c3)
-          )
-        }
-        default:
+      const result = colorSpaceToColor(colorspace, c1, c2, c3, a);
+      if (result !== null) {
+        return result;
       }
+      break;
     }
     default:
   }
   throw new Error(`Color.parse(): invalid CSS color: "${color}"`);
-}
-
-/**
- * Accepts: "50%", "128"
- * https://developer.mozilla.org/en-US/docs/Web/CSS/color_value/rgb#values
- * @returns a value in the 0 to 255 range
- */
-function parseColorChannel(channel: string): number {
-  if (channel.charCodeAt(channel.length - 1) === PERCENT) {
-    return Math.round((parseFloat(channel) / 100) * 255);
-  }
-  return Math.round(parseFloat(channel));
-}
-
-/**
- * Accepts: "50%", ".5", "0.5"
- * https://developer.mozilla.org/en-US/docs/Web/CSS/alpha-value
- * @returns a value in the [0, 255] range
- */
-function parseAlphaChannel(channel: string): number {
-  return Math.round(parseAlphaValue(channel) * 255);
-}
-
-/**
- * Accepts: "50%", ".5", "0.5"
- * https://developer.mozilla.org/en-US/docs/Web/CSS/alpha-value
- * @returns a value in the [0, 1] range
- */
-function parseAlphaValue(channel: string): number {
-  if (channel.charCodeAt(0) === N) {
-    return 0;
-  }
-  if (channel.charCodeAt(channel.length - 1) === PERCENT) {
-    return parseFloat(channel) / 100;
-  }
-  return parseFloat(channel);
-}
-
-/**
- * Accepts: "360", "360deg", "400grad", "6.28rad", "1turn", "none"
- * https://developer.mozilla.org/en-US/docs/Web/CSS/angle
- * @returns a value in the 0.0 to 1.0 range
- */
-function parseAngle(angle: string): number {
-  let factor = 1;
-  switch (angle.charCodeAt(angle.length - 1)) {
-    case E: {
-      // 'none'
-      return 0;
-    }
-    case D: {
-      // 'rad', 'grad'
-      if (angle.charCodeAt(Math.max(0, angle.length - 4)) === G) {
-        // 'grad'
-        factor = 400;
-      } else {
-        // 'rad'
-        factor = 2 * Math.PI; // TAU
-      }
-      break;
-    }
-    case N: {
-      // 'turn'
-      factor = 1;
-      break;
-    }
-    // case G: // 'deg', but no need to check as it's also the default
-    default: {
-      factor = 360;
-    }
-  }
-  return parseFloat(angle) / factor;
-}
-
-/**
- * Accepts: "100%", "none"
- * @returns a value in the 0.0 to 1.0 range
- */
-function parsePercentage(value: string): number {
-  if (value.charCodeAt(0) === N) {
-    return 0;
-  }
-  return parseFloat(value) / 100;
-}
-
-/**
- * Accepts: "1.0", "100%", "none"
- * @returns a value in the 0.0 to 1.0 range
- */
-function parsePercentageOrValue(value: string): number {
-  if (value.charCodeAt(0) === N) {
-    return 0;
-  }
-  if (value.charCodeAt(value.length - 1) === PERCENT) {
-    return parseFloat(value) / 100;
-  }
-  return parseFloat(value);
-}
-
-/**
- * Accepts: "100", "100%", "none"
- * @returns a value in the -@range to @range range
- */
-function parsePercentageFor(value: string, range: number): number {
-  if (value.charCodeAt(0) === N) {
-    return 0;
-  }
-  if (value.charCodeAt(value.length - 1) === PERCENT) {
-    return parseFloat(value) / 100 * range;
-  }
-  return parseFloat(value);
-}
-
-
-// HSL functions
-
-function hueToRGB(p: number, q: number, t: number) {
-  if (t < 0) { t += 1 };
-  if (t > 1) { t -= 1 };
-  if (t < 1 / 6) { return p + (q - p) * 6 * t };
-  if (t < 1 / 2) { return q };
-  if (t < 2 / 3) { return p + (q - p) * (2 / 3 - t) * 6 };
-  { return p };
-}
-
-// HWB functions
-
-function hwbApply(channel: number, w: number, b: number) {
-  let result = channel / 255
-
-  result *= 1 - w - b
-  result += w
-
-  return Math.round(result * 255)
-}
-
-
-function clamp(value: number) {
-  return Math.max(0, Math.min(255, value))
-}
-
-function newColorFromArray(a: number, rgb: [number, number, number]) {
-  const r = clamp(Math.round(rgb[0] * 255))
-  const g = clamp(Math.round(rgb[1] * 255))
-  const b = clamp(Math.round(rgb[2] * 255))
-  return newColor(r, g, b, a)
 }
