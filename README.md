@@ -42,13 +42,25 @@ Due to the compact representation, `color-bits` preserves **at most 8 bits of pr
 
 For performance reasons, the color representation is `int32`, not `uint32`. It is expected if you see negative numbers when you print the raw color value. Use the formatting functions to transform the color representation back into a usable format.
 
-`color-bits` supports the full **CSS Color Module Level 4** color spaces **in absolute representations only**, so:
- - Yes: `oklab(59.69% 0.1007 0.1191)`
- - No: `oklab(from green l a b / 0.5)`
+The fast `Color.parse` supports the full **CSS Color Module Level 4** color spaces in **absolute** representations (`#hex`, `rgb()`, `hsl()`, `hwb()`, `lab()`, `lch()`, `oklab()`, `oklch()`, `color()`). Named colors, **relative** colors and `color-mix()` are supported through `parseCSS` from the separate `color-bits/css` entry (so the fast core stays tiny):
+
+```tsx
+import { parseCSS } from 'color-bits/css'
+
+parseCSS('rebeccapurple')                       // named colors
+parseCSS('oklab(from green l a b / 0.5)')       // relative colors
+parseCSS('hsl(from red calc(h + 120) s l)')     // relative colors with calc()
+parseCSS('color-mix(in oklch, red 40%, blue)')  // color-mix()
+
+// currentColor / system colors need context, passed via `resolve`:
+parseCSS('currentColor', { resolve: () => getComputedStyle(el).color })
+```
+
+The named-color table lives in its own `color-bits/named` entry (`resolveNamed`, `namedColors`), and `color-mix` is also exposed programmatically over parsed colors from `color-bits/css`.
 
 When parsing and converting non-sRGB color spaces, `color-bits` behaves the same as browsers do, which differs from the formal CSS spec! In technical terms: non-sRGB color spaces with a wider gamut are converted using clipping rather than gamut-mapping.
 
-Every function is tree-shakeable, so the bundle size cost should be from 1.5kb to 3kb, depending on which functions you use.
+Every function is tree-shakeable, so the bundle size cost should be from 1.5kb to 3kb, depending on which functions you use. `parseCSS` and the named-color table are only pulled into your bundle if you import them.
 
 ### 📚 Documentation
 

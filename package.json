@@ -21,7 +21,15 @@
   "exports": {
     ".": "./build/index.js",
     "./*": "./build/*",
-    "./string": "./build/string.js"
+    "./string": "./build/string.js",
+    "./css": {
+      "types": "./build/css.d.ts",
+      "default": "./build/css.js"
+    },
+    "./named": {
+      "types": "./build/named.d.ts",
+      "default": "./build/named.js"
+    }
   },
   "types": "./build/index.d.ts",
   "keywords": [
