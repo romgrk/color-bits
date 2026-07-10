@@ -75,4 +75,52 @@ describe('Color', () => {
     });
 
   });
+
+  describe('.parse() non-sRGB spaces', () => {
+    it('maps full channels to white (RGB gamuts) and zero to black', () => {
+      for (const space of ['srgb', 'srgb-linear', 'display-p3', 'a98-rgb', 'prophoto-rgb', 'rec2020']) {
+        expect(Color.parse(`color(${space} 1 1 1)`)).to.equal(c(0xffffffff))
+      }
+      for (const space of ['srgb', 'display-p3', 'prophoto-rgb', 'rec2020', 'xyz', 'xyz-d50', 'xyz-d65']) {
+        expect(Color.parse(`color(${space} 0 0 0)`)).to.equal(c(0x000000ff))
+      }
+    });
+
+    it('clips wide-gamut colors to sRGB, like Chrome', () => {
+      expect(Color.parse('color(display-p3 1 0 0)')).to.equal(c(0xff0000ff))
+      expect(Color.parse('color(display-p3 0 1 0)')).to.equal(c(0x00ff00ff))
+      expect(Color.parse('color(display-p3 0 0 1)')).to.equal(c(0x0000ffff))
+      expect(Color.parse('color(rec2020 1 0 0)')).to.equal(c(0xff0000ff))
+    });
+
+    it('treats angle units (deg/turn/rad/grad) equivalently', () => {
+      const deg = Color.parse('hsl(120deg 80% 40%)')
+      expect(Color.parse('hsl(0.3333333turn 80% 40%)')).to.equal(deg)
+      expect(Color.parse('hsl(2.0943951rad 80% 40%)')).to.equal(deg)
+      expect(Color.parse('hsl(133.3333grad 80% 40%)')).to.equal(deg)
+    });
+
+    it('wraps hue by 360°', () => {
+      expect(Color.parse('lch(52% 72 410)')).to.equal(Color.parse('lch(52% 72 50)'))
+      expect(Color.parse('oklch(60% 0.15 390)')).to.equal(Color.parse('oklch(60% 0.15 30)'))
+      expect(Color.parse('hsl(480 80% 40%)')).to.equal(Color.parse('hsl(120 80% 40%)'))
+    });
+
+    it('accepts numbers or percentages for hsl saturation/lightness', () => {
+      expect(Color.parse('hsl(120 50 50)')).to.equal(Color.parse('hsl(120 50% 50%)'))
+    });
+
+    it('orients the lab/oklab a (green↔red) and b (blue↔yellow) axes', () => {
+      const rgb = (color: string) => {
+        const col = Color.parse(color)
+        return { r: Color.getRed(col), g: Color.getGreen(col), b: Color.getBlue(col) }
+      }
+      const aPos = rgb('lab(60% 60 0)');   expect(aPos.r).to.be.greaterThan(aPos.g)  // +a → red
+      const aNeg = rgb('lab(60% -60 0)');  expect(aNeg.g).to.be.greaterThan(aNeg.r)  // -a → green
+      const bNeg = rgb('lab(60% 0 -60)');  expect(bNeg.b).to.be.greaterThan(bNeg.r)  // -b → blue
+      const bPos = rgb('lab(60% 0 60)');   expect(bPos.b).to.be.lessThan(bPos.r)     // +b → yellow
+      const oaPos = rgb('oklab(60% 0.15 0)');  expect(oaPos.r).to.be.greaterThan(oaPos.g)
+      const oaNeg = rgb('oklab(60% -0.15 0)'); expect(oaNeg.g).to.be.greaterThan(oaNeg.r)
+    });
+  });
 });

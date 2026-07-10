@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 import * as Color from './index'
 import { parseCSS, colorMix } from './css'
-import { resolveNamed, namedColors } from './named'
+import { resolveNamed, namedColors } from './namedColors'
 
 const c = Color.from
 const hex = (color: number) => Color.formatHEXA(color)
@@ -71,6 +71,44 @@ describe('CSS Color 4/5', () => {
     })
   })
 
+  describe('non-sRGB channel correctness', () => {
+    // Relative colors with all-literal channels ignore the origin, so they must
+    // exactly match the (browser-verified) absolute parser in every space. This
+    // ties the relative path's units to the absolute path's known-good values.
+    it('relative literals equal the absolute function', () => {
+      expect(parseCSS('hsl(from green 50deg 80% 40%)')).to.equal(Color.parse('hsl(50deg 80% 40%)'))
+      expect(parseCSS('hwb(from green 50deg 30% 40%)')).to.equal(Color.parse('hwb(50deg 30% 40%)'))
+      expect(parseCSS('lab(from green 50% 40 59.5)')).to.equal(Color.parse('lab(50% 40 59.5)'))
+      expect(parseCSS('lch(from green 52.2% 72.2 50)')).to.equal(Color.parse('lch(52.2% 72.2 50)'))
+      expect(parseCSS('oklab(from green 40.1% 0.1143 0.045)')).to.equal(Color.parse('oklab(40.1% 0.1143 0.045)'))
+      expect(parseCSS('oklch(from green 40.1% 0.123 21.57)')).to.equal(Color.parse('oklch(40.1% 0.123 21.57)'))
+      expect(parseCSS('color(from green srgb 1 0.5 0)')).to.equal(Color.parse('color(srgb 1 0.5 0)'))
+      expect(parseCSS('color(from green display-p3 1 0.5 0)')).to.equal(Color.parse('color(display-p3 1 0.5 0)'))
+    })
+    it('binds keywords correctly at lightness/whiteness/blackness extremes', () => {
+      expect(parseCSS('hsl(from red h s 0%)')).to.equal(c(0x000000ff))    // L=0   -> black
+      expect(parseCSS('hsl(from red h s 100%)')).to.equal(c(0xffffffff))  // L=100 -> white
+      expect(parseCSS('hsl(from red h 0% 50%)')).to.equal(c(0x808080ff))  // S=0   -> gray
+      expect(parseCSS('hwb(from red h 100% 0%)')).to.equal(c(0xffffffff)) // W=100 -> white
+      expect(parseCSS('hwb(from red h 0% 100%)')).to.equal(c(0x000000ff)) // B=100 -> black
+      expect(parseCSS('lab(from green 0% 0 0)')).to.equal(c(0x000000ff))
+      expect(parseCSS('lab(from green 100% 0 0)')).to.equal(c(0xffffffff))
+      expect(parseCSS('oklab(from green 0% 0 0)')).to.equal(c(0x000000ff))
+      expect(parseCSS('oklab(from green 100% 0 0)')).to.equal(c(0xffffffff))
+    })
+    it('zero chroma yields an achromatic gray', () => {
+      for (const input of ['lch(from green l 0 h)', 'oklch(from orange l 0 h)']) {
+        const color = parseCSS(input)
+        expect(Color.getRed(color)).to.equal(Color.getGreen(color))
+        expect(Color.getGreen(color)).to.equal(Color.getBlue(color))
+      }
+    })
+    it('rotates hue predictably in hsl', () => {
+      expect(parseCSS('hsl(from red calc(h + 120) s l)')).to.equal(c(0x00ff00ff)) // -> green
+      expect(parseCSS('hsl(from red calc(h + 240) s l)')).to.equal(c(0x0000ffff)) // -> blue
+    })
+  })
+
   describe('color-mix()', () => {
     it('mixes in sRGB', () => {
       expect(parseCSS('color-mix(in srgb, red, blue)')).to.equal(c(0x800080ff))
@@ -87,6 +125,20 @@ describe('CSS Color 4/5', () => {
       const red = Color.parse('#ff0000')
       const blue = Color.parse('#0000ff')
       expect(colorMix(red, blue, { space: 'srgb' })).to.equal(c(0x800080ff))
+    })
+    it('mixing a color with itself is identity in every space', () => {
+      const red = Color.parse('#ff0000')
+      for (const space of ['srgb', 'srgb-linear', 'lab', 'oklab', 'lch', 'oklch', 'hsl', 'hwb', 'xyz']) {
+        expect(colorMix(red, red, { space })).to.equal(c(0xff0000ff))
+      }
+    })
+    it('honors 0% / 100% endpoints', () => {
+      expect(parseCSS('color-mix(in srgb, red 0%, blue)')).to.equal(c(0x0000ffff))
+      expect(parseCSS('color-mix(in srgb, red, blue 0%)')).to.equal(c(0xff0000ff))
+    })
+    it('supports increasing / decreasing hue interpolation', () => {
+      expect(parseCSS('color-mix(in hsl increasing hue, red, blue)')).to.equal(c(0x00ff00ff))
+      expect(parseCSS('color-mix(in hsl decreasing hue, red, blue)')).to.equal(c(0xff00ffff))
     })
   })
 
