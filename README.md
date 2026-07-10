@@ -24,11 +24,13 @@ This library represents RGBA colors as a single `int32` number and avoids alloca
 
 | Library        | Operations/sec | Relative speed |
 | ---            | --:            | ---            |
-| **color-bits** | **22 966 299** | fastest        |
-| colord         | 4 308 547      | 81.24% slower  |
-| tinycolor2     | 1 475 762      | 93.57% slower  |
-| chroma-js      | 846 924        | 96.31% slower  |
-| color          | 799 262        | 96.52% slower  |
+| **color-bits** | **84 428 994** | fastest        |
+| @texel/color   | 7 160 587      | 91.52% slower  |
+| colord         | 6 604 745      | 92.18% slower  |
+| culori         | 5 223 367      | 93.81% slower  |
+| tinycolor2     | 2 479 660      | 97.06% slower  |
+| color          | 1 440 968      | 98.29% slower  |
+| chroma-js      | 1 348 236      | 98.40% slower  |
 
 ### 🛠️ Install
 
@@ -36,13 +38,11 @@ This library represents RGBA colors as a single `int32` number and avoids alloca
 pnpm install color-bits
 ```
 
-### 📑 Technical details
+### 📑 Usage
 
-Due to the compact representation, `color-bits` preserves **at most 8 bits of precision for each channel**, so an operation like `lighten(color, 0.000001)` would simply return the same color with no modification.
+The fast `Color.parse` supports the full **CSS Color Module Level 4** color spaces in **absolute** representations (`#hex`, `rgb()`, `hsl()`, `hwb()`, `lab()`, `lch()`, `oklab()`, `oklch()`, `color()`).
 
-For performance reasons, the color representation is `int32`, not `uint32`. It is expected if you see negative numbers when you print the raw color value. Use the formatting functions to transform the color representation back into a usable format.
-
-The fast `Color.parse` supports the full **CSS Color Module Level 4** color spaces in **absolute** representations (`#hex`, `rgb()`, `hsl()`, `hwb()`, `lab()`, `lch()`, `oklab()`, `oklch()`, `color()`). Named colors, **relative** colors and `color-mix()` are supported through `parseCSS` from the separate `color-bits/css` entry (so the fast core stays tiny):
+Named colors, **relative** colors and `color-mix()` are supported through `parseCSS()` from the separate `color-bits/css` entry, which is slower and bigger. If you don't need those features, go for `parse()`.
 
 ```tsx
 import { parseCSS } from 'color-bits/css'
@@ -56,9 +56,9 @@ parseCSS('color-mix(in oklch, red 40%, blue)')  // color-mix()
 parseCSS('currentColor', { resolve: () => getComputedStyle(el).color })
 ```
 
-The named-color table lives in its own `color-bits/named` entry (`resolveNamed`, `namedColors`), and `color-mix` is also exposed programmatically over parsed colors from `color-bits/css`.
+**WARNING**: Due to the compact representation, `color-bits` preserves **at most 8 bits of precision for each channel**, so an operation like `lighten(color, 0.000001)` would simply return the same color with no modification. For performance reasons, the color representation is `int32`, not `uint32`. **It is expected if you see negative numbers when you print the raw color value**. Use the formatting functions to transform the color representation back into a usable format.
 
-When parsing and converting non-sRGB color spaces, `color-bits` behaves the same as browsers do, which differs from the formal CSS spec! In technical terms: non-sRGB color spaces with a wider gamut are converted using clipping rather than gamut-mapping.
+The named-color table lives in its own `color-bits/named` entry (`resolveNamed`, `namedColors`), and `color-mix` is also exposed programmatically over parsed colors from `color-bits/css`.
 
 Every function is tree-shakeable, so the bundle size cost should be from 1.5kb to 3kb, depending on which functions you use. `parseCSS` and the named-color table are only pulled into your bundle if you import them.
 
@@ -84,6 +84,10 @@ import * as Color from 'color-bits/string'
 
 const output = Color.alpha('#232323', 0.5) // #RRGGBBAA string
 ```
+
+### Color conversion & gamut-mapping
+
+When parsing and converting non-sRGB color spaces, `color-bits` behaves the same as browsers (Chrome in particular) do, which differs from the formal CSS spec! In technical terms: non-sRGB color spaces with a wider gamut are converted using clipping rather than gamut-mapping.
 
 ### 📜 License
 
