@@ -2,11 +2,11 @@
 // relative parser (relative.ts). Kept in their own module so both paths use the
 // exact same unit conventions and neither can drift from the other.
 
-const PERCENT = '%'.charCodeAt(0);
-const G = 'g'.charCodeAt(0);
-const N = 'n'.charCodeAt(0);
-const D = 'd'.charCodeAt(0);
-const E = 'e'.charCodeAt(0);
+const PERCENT = 37; // '%'
+const G = 103;      // 'g'
+const N = 110;      // 'n'
+const D = 100;      // 'd'
+const E = 101;      // 'e'
 
 /**
  * Accepts: "50%", "128"

@@ -15,14 +15,14 @@ export interface Tokens {
   tokens: string[]
 }
 
-const SPACE = ' '.charCodeAt(0)
-const TAB = '\t'.charCodeAt(0)
-const NEWLINE = '\n'.charCodeAt(0)
-const RETURN = '\r'.charCodeAt(0)
-const COMMA = ','.charCodeAt(0)
-const SLASH = '/'.charCodeAt(0)
-const OPEN = '('.charCodeAt(0)
-const CLOSE = ')'.charCodeAt(0)
+const SPACE = 32    // ' '
+const TAB = 9       // '\t'
+const NEWLINE = 10  // '\n'
+const RETURN = 13   // '\r'
+const COMMA = 44    // ','
+const SLASH = 47    // '/'
+const OPEN = 40     // '('
+const CLOSE = 41    // ')'
 
 function isSeparator(c: number): boolean {
   return c === SPACE || c === TAB || c === NEWLINE || c === RETURN

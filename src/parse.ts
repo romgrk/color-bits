@@ -17,7 +17,7 @@ import {
   parseNumberOrPercentage,
 } from './units'
 
-const HASH = '#'.charCodeAt(0);
+const HASH = 35; // '#'
 
 /**
  * Approximative CSS colorspace string pattern, e.g. rgb(), color()

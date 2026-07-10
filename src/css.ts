@@ -7,13 +7,13 @@
 import { Color } from './core'
 import { parse, parseHex } from './parse'
 import { tokenize } from './tokenize'
-import { resolveNamed } from './named'
+import { resolveNamed } from './namedColors'
 import { resolveRelative } from './relative'
 import { resolveColorMix } from './color-mix'
 
 export { colorMix } from './color-mix'
 export type { HueMethod, ColorMixOptions } from './color-mix'
-export { resolveNamed, namedColors } from './named'
+export { resolveNamed, namedColors } from './namedColors'
 
 /**
  * Resolves a color keyword that has no fixed value — `currentColor` and system
@@ -27,7 +27,7 @@ export interface ParseCSSOptions {
   resolve?: ColorResolver
 }
 
-const HASH = '#'.charCodeAt(0)
+const HASH = 35 // '#'
 
 /**
  * Parse any CSS Color Module 4/5 color: hex, named colors, rgb()/hsl()/hwb()/

@@ -7,10 +7,10 @@
 // reference (e.g. 255 for rgb, 1 for oklab lightness) — matching how a bare
 // percentage is interpreted in that channel slot.
 
-const ZERO = '0'.charCodeAt(0)
-const NINE = '9'.charCodeAt(0)
-const DOT = '.'.charCodeAt(0)
-const PERCENT = '%'.charCodeAt(0)
+const ZERO = 48    // '0'
+const NINE = 57    // '9'
+const DOT = 46     // '.'
+const PERCENT = 37 // '%'
 
 type Token =
   | { t: 'num', v: number }

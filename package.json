@@ -27,8 +27,8 @@
       "default": "./build/css.js"
     },
     "./named": {
-      "types": "./build/named.d.ts",
-      "default": "./build/named.js"
+      "types": "./build/namedColors.d.ts",
+      "default": "./build/namedColors.js"
     }
   },
   "types": "./build/index.d.ts",
@@ -51,6 +51,7 @@
     "@babel/preset-env": "^7.25.4",
     "@babel/preset-typescript": "^7.24.7",
     "@jest/globals": "^29.7.0",
+    "@texel/color": "^1.1.11",
     "@types/chai": "^4.3.19",
     "@types/jest": "^29.5.12",
     "benny": "^3.7.1",
@@ -58,6 +59,7 @@
     "chroma-js": "^3.0.0",
     "color": "^4.2.3",
     "colord": "^2.9.3",
+    "culori": "^4.0.2",
     "jest": "^29.7.0",
     "npmignore": "^0.3.1",
     "tinycolor2": "^1.6.0",

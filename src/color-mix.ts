@@ -16,7 +16,7 @@ import {
   oklchToColor, srgbToOklch,
 } from './channels'
 
-const PERCENT = '%'.charCodeAt(0)
+const PERCENT = 37 // '%'
 
 export type HueMethod = 'shorter' | 'longer' | 'increasing' | 'decreasing'
 
