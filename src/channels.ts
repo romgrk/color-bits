@@ -16,7 +16,30 @@
 // route through here, guaranteeing identical results for the same nominal color.
 
 import { Color, newColor } from './core'
-import * as convert from './convert'
+import {
+  adobeRGBToXyzd50,
+  displayP3ToXyzd50,
+  labToLch,
+  labToXyzd50,
+  lchToLab,
+  oklabToXyzd65,
+  oklchToXyzd50,
+  proPhotoToXyzd50,
+  rec2020ToXyzd50,
+  srgbLinearToXyzd50,
+  srgbToXyzd50,
+  xyzd50ToAdobeRGB,
+  xyzd50ToD65,
+  xyzd50ToDisplayP3,
+  xyzd50ToLab,
+  xyzd50ToOklch,
+  xyzd50ToProPhoto,
+  xyzd50ToRec2020,
+  xyzd50ToSrgb,
+  xyzd50TosRGBLinear,
+  xyzd65ToD50,
+  xyzd65ToOklab,
+} from './convert'
 
 type RGB = [number, number, number]
 
@@ -114,48 +137,48 @@ export function srgbToHwb(r: number, g: number, b: number): RGB {
 
 /** @param l 0..100 @param a raw @param b raw @param alpha alpha byte */
 export function labToColor(l: number, a: number, b: number, alpha: number): Color {
-  const rgb = convert.xyzd50ToSrgb(...convert.labToXyzd50(l, a, b))
+  const rgb = xyzd50ToSrgb(...labToXyzd50(l, a, b))
   return srgbToColor(rgb[0], rgb[1], rgb[2], alpha)
 }
 
 /** @param sRGB in [0, 1] @returns [l 0..100, a raw, b raw] */
 export function srgbToLab(r: number, g: number, b: number): RGB {
-  return convert.xyzd50ToLab(...convert.srgbToXyzd50(r, g, b))
+  return xyzd50ToLab(...srgbToXyzd50(r, g, b))
 }
 
 /** @param l 0..100 @param c raw @param h degrees @param alpha alpha byte */
 export function lchToColor(l: number, c: number, h: number, alpha: number): Color {
-  const rgb = convert.xyzd50ToSrgb(...convert.labToXyzd50(...convert.lchToLab(l, c, h)))
+  const rgb = xyzd50ToSrgb(...labToXyzd50(...lchToLab(l, c, h)))
   return srgbToColor(rgb[0], rgb[1], rgb[2], alpha)
 }
 
 /** @param sRGB in [0, 1] @returns [l 0..100, c raw, h degrees] */
 export function srgbToLch(r: number, g: number, b: number): RGB {
-  return convert.labToLch(...convert.xyzd50ToLab(...convert.srgbToXyzd50(r, g, b)))
+  return labToLch(...xyzd50ToLab(...srgbToXyzd50(r, g, b)))
 }
 
 // OKLab / OKLCH
 
 /** @param l 0..1 @param a raw @param b raw @param alpha alpha byte */
 export function oklabToColor(l: number, a: number, b: number, alpha: number): Color {
-  const rgb = convert.xyzd50ToSrgb(...convert.xyzd65ToD50(...convert.oklabToXyzd65(l, a, b)))
+  const rgb = xyzd50ToSrgb(...xyzd65ToD50(...oklabToXyzd65(l, a, b)))
   return srgbToColor(rgb[0], rgb[1], rgb[2], alpha)
 }
 
 /** @param sRGB in [0, 1] @returns [l 0..1, a raw, b raw] */
 export function srgbToOklab(r: number, g: number, b: number): RGB {
-  return convert.xyzd65ToOklab(...convert.xyzd50ToD65(...convert.srgbToXyzd50(r, g, b)))
+  return xyzd65ToOklab(...xyzd50ToD65(...srgbToXyzd50(r, g, b)))
 }
 
 /** @param l 0..1 @param c raw @param h degrees @param alpha alpha byte */
 export function oklchToColor(l: number, c: number, h: number, alpha: number): Color {
-  const rgb = convert.xyzd50ToSrgb(...convert.oklchToXyzd50(l, c, h))
+  const rgb = xyzd50ToSrgb(...oklchToXyzd50(l, c, h))
   return srgbToColor(rgb[0], rgb[1], rgb[2], alpha)
 }
 
 /** @param sRGB in [0, 1] @returns [l 0..1, c raw, h degrees] */
 export function srgbToOklch(r: number, g: number, b: number): RGB {
-  return convert.xyzd50ToOklch(...convert.srgbToXyzd50(r, g, b))
+  return xyzd50ToOklch(...srgbToXyzd50(r, g, b))
 }
 
 // color() predefined color spaces
@@ -188,14 +211,14 @@ export function colorSpaceChannels(space: string): string[] | null {
 export function colorSpaceToSrgb(space: string, c1: number, c2: number, c3: number): RGB | null {
   switch (space) {
     case 'srgb':         return [c1, c2, c3]
-    case 'srgb-linear':  return convert.xyzd50ToSrgb(...convert.srgbLinearToXyzd50(c1, c2, c3))
-    case 'display-p3':   return convert.xyzd50ToSrgb(...convert.displayP3ToXyzd50(c1, c2, c3))
-    case 'a98-rgb':      return convert.xyzd50ToSrgb(...convert.adobeRGBToXyzd50(c1, c2, c3))
-    case 'prophoto-rgb': return convert.xyzd50ToSrgb(...convert.proPhotoToXyzd50(c1, c2, c3))
-    case 'rec2020':      return convert.xyzd50ToSrgb(...convert.rec2020ToXyzd50(c1, c2, c3))
+    case 'srgb-linear':  return xyzd50ToSrgb(...srgbLinearToXyzd50(c1, c2, c3))
+    case 'display-p3':   return xyzd50ToSrgb(...displayP3ToXyzd50(c1, c2, c3))
+    case 'a98-rgb':      return xyzd50ToSrgb(...adobeRGBToXyzd50(c1, c2, c3))
+    case 'prophoto-rgb': return xyzd50ToSrgb(...proPhotoToXyzd50(c1, c2, c3))
+    case 'rec2020':      return xyzd50ToSrgb(...rec2020ToXyzd50(c1, c2, c3))
     case 'xyz':
-    case 'xyz-d65':      return convert.xyzd50ToSrgb(...convert.xyzd65ToD50(c1, c2, c3))
-    case 'xyz-d50':      return convert.xyzd50ToSrgb(c1, c2, c3)
+    case 'xyz-d65':      return xyzd50ToSrgb(...xyzd65ToD50(c1, c2, c3))
+    case 'xyz-d50':      return xyzd50ToSrgb(c1, c2, c3)
     default:             return null
   }
 }
@@ -213,14 +236,14 @@ export function colorSpaceToColor(space: string, c1: number, c2: number, c3: num
 export function srgbToColorSpace(space: string, r: number, g: number, b: number): RGB | null {
   switch (space) {
     case 'srgb':         return [r, g, b]
-    case 'srgb-linear':  return convert.xyzd50TosRGBLinear(...convert.srgbToXyzd50(r, g, b))
-    case 'display-p3':   return convert.xyzd50ToDisplayP3(...convert.srgbToXyzd50(r, g, b))
-    case 'a98-rgb':      return convert.xyzd50ToAdobeRGB(...convert.srgbToXyzd50(r, g, b))
-    case 'prophoto-rgb': return convert.xyzd50ToProPhoto(...convert.srgbToXyzd50(r, g, b))
-    case 'rec2020':      return convert.xyzd50ToRec2020(...convert.srgbToXyzd50(r, g, b))
+    case 'srgb-linear':  return xyzd50TosRGBLinear(...srgbToXyzd50(r, g, b))
+    case 'display-p3':   return xyzd50ToDisplayP3(...srgbToXyzd50(r, g, b))
+    case 'a98-rgb':      return xyzd50ToAdobeRGB(...srgbToXyzd50(r, g, b))
+    case 'prophoto-rgb': return xyzd50ToProPhoto(...srgbToXyzd50(r, g, b))
+    case 'rec2020':      return xyzd50ToRec2020(...srgbToXyzd50(r, g, b))
     case 'xyz':
-    case 'xyz-d65':      return convert.xyzd50ToD65(...convert.srgbToXyzd50(r, g, b))
-    case 'xyz-d50':      return convert.srgbToXyzd50(r, g, b)
+    case 'xyz-d65':      return xyzd50ToD65(...srgbToXyzd50(r, g, b))
+    case 'xyz-d50':      return srgbToXyzd50(r, g, b)
     default:             return null
   }
 }
