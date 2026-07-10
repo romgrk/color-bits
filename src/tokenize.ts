@@ -73,10 +73,16 @@ export function tokenize(input: string): Tokens | null {
       depth++
     } else if (c === CLOSE) {
       depth--
+      if (depth < 0) {
+        return null // unbalanced
+      }
     }
     if (start === -1) {
       start = i
     }
+  }
+  if (depth !== 0) {
+    return null // unbalanced
   }
   if (start !== -1) {
     tokens.push(input.slice(start, end - 1))

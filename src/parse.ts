@@ -9,6 +9,7 @@ import {
   colorSpaceToColor,
 } from './channels'
 import {
+  isFromKeyword,
   parseColorChannel,
   parseAlphaChannel,
   parseAngle,
@@ -110,22 +111,36 @@ function hexValue(c: number) {
  */
 export function parseColor(color: string): Color {
   const match = PATTERN.exec(color);
-  if (match === null) {
-    throw new Error(`Color.parse(): invalid CSS color: "${color}"`);
+  if (match !== null) {
+    const format = match[1];
+    const p1 = match[2];
+    const p2 = match[3];
+    const p3 = match[4];
+    const p4 = match[5];
+    const p5 = match[6];
+
+    // Relative colors (`rgb(from …)`) are not handled by the fast path.
+    if (isFromKeyword(p1)) {
+      throw new Error(`Color.parse(): relative colors require parseCSS() from "color-bits/css": "${color}"`);
+    }
+
+    let result = parseColorFormat(format, p1, p2, p3, p4, p5);
+    if (result === null && format.toLowerCase() !== format) {
+      // CSS function names are ASCII case-insensitive; retry lowercased so the
+      // common all-lowercase inputs pay nothing.
+      result = parseColorFormat(format.toLowerCase(), p1, p2, p3, p4, p5);
+    }
+    if (result !== null) {
+      return result;
+    }
   }
+  throw new Error(`Color.parse(): invalid CSS color: "${color}"`);
+}
 
-  const format = match[1];
-  const p1 = match[2];
-  const p2 = match[3];
-  const p3 = match[4];
-  const p4 = match[5];
-  const p5 = match[6];
-
-  // Relative colors (`rgb(from …)`) are not handled by the fast path.
-  if (p1 === 'from') {
-    throw new Error(`Color.parse(): relative colors require parseCSS() from "color-bits/css": "${color}"`);
-  }
-
+function parseColorFormat(
+  format: string,
+  p1: string, p2: string, p3: string, p4: string, p5: string,
+): Color | null {
   switch (format) {
     case 'rgb':
     case 'rgba': {
@@ -187,19 +202,19 @@ export function parseColor(color: string): Color {
     }
     case 'color': {
       // https://drafts.csswg.org/css-color-4/#color-function
-      const colorspace = p1;
       const c1 = parsePercentageOrValue(p2);
       const c2 = parsePercentageOrValue(p3);
       const c3 = parsePercentageOrValue(p4);
       const a = p5 ? parseAlphaChannel(p5) : 255;
 
-      const result = colorSpaceToColor(colorspace, c1, c2, c3, a);
-      if (result !== null) {
-        return result;
+      // Color space names are ASCII case-insensitive too; retry on miss only.
+      let result = colorSpaceToColor(p1, c1, c2, c3, a);
+      if (result === null && p1.toLowerCase() !== p1) {
+        result = colorSpaceToColor(p1.toLowerCase(), c1, c2, c3, a);
       }
-      break;
+      return result;
     }
     default:
+      return null;
   }
-  throw new Error(`Color.parse(): invalid CSS color: "${color}"`);
 }

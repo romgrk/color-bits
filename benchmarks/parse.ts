@@ -22,15 +22,20 @@ const cases: Record<string, string> = {
   'color-p3':   'color(display-p3 1 0.5 0)',
 }
 
+// XOR results into a sink so the (pure, number-returning) parse call cannot be
+// dead-code-eliminated, which would inflate ops/s and hide regressions.
+let sink = 0
+
 b.suite(
   'Color.parse() — absolute representations',
   ...Object.entries(cases).map(([name, input]) =>
-    b.add(name, () => { parse(input) })
+    b.add(name, () => { sink ^= parse(input) })
   ),
   b.cycle(),
   b.complete((summary) => {
     for (const r of summary.results) {
       console.log(`RESULT ${r.name.padEnd(12)} ${Math.round(r.ops).toString().padStart(12)} ops/s`)
     }
+    if (sink === 42) console.log('')
   }),
 )

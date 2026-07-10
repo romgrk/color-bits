@@ -114,19 +114,20 @@ function rgbToHSL(r: number, g: number, b: number) {
   g /= 255;
   b /= 255;
 
-  const l = Math.max(r, g, b);
-  const s = l - Math.min(r, g, b);
+  const max = Math.max(r, g, b);
+  const s = max - Math.min(r, g, b);
   const h = s
-    ? l === r
+    ? max === r
       ? (g - b) / s
-      : l === g
+      : max === g
       ? 2 + (b - r) / s
       : 4 + (r - g) / s
     : 0;
 
+  // Saturation branches on lightness (= (2*max - s) / 2), not on max.
   buffer[0] = 60 * h < 0 ? 60 * h + 360 : 60 * h
-  buffer[1] = 100 * (s ? (l <= 0.5 ? s / (2 * l - s) : s / (2 - (2 * l - s))) : 0)
-  buffer[2] = (100 * (2 * l - s)) / 2
+  buffer[1] = 100 * (s ? (2 * max - s <= 1 ? s / (2 * max - s) : s / (2 - (2 * max - s))) : 0)
+  buffer[2] = (100 * (2 * max - s)) / 2
 }
 
 // https://stackoverflow.com/a/29463581/3112706

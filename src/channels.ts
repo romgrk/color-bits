@@ -16,6 +16,7 @@
 // route through here, guaranteeing identical results for the same nominal color.
 
 import { Color, newColor } from './core'
+import { clampByte } from './units'
 import {
   adobeRGBToXyzd50,
   displayP3ToXyzd50,
@@ -45,8 +46,7 @@ type RGB = [number, number, number]
 
 /** sRGB component in [0, 1] -> clamped byte in [0, 255]. */
 function to255(v: number): number {
-  const n = Math.round(v * 255)
-  return n < 0 ? 0 : n > 255 ? 255 : n
+  return clampByte(v * 255)
 }
 
 /** Build a Color from sRGB components in [0, 1] and an alpha byte (0..255). */
@@ -56,6 +56,8 @@ export function srgbToColor(r: number, g: number, b: number, a: number): Color {
 
 // HSL
 
+// t must be within [-1, 2): a single ±1 wrap brings it into [0, 1). Callers
+// guarantee this by normalizing the hue first, so t = h/360 ± 1/3 ∈ [-1/3, 4/3).
 function hueToRGB(p: number, q: number, t: number) {
   if (t < 0) { t += 1 }
   if (t > 1) { t -= 1 }
@@ -65,24 +67,34 @@ function hueToRGB(p: number, q: number, t: number) {
   return p
 }
 
-/** @param h degrees @param s 0..100 @param l 0..100 @param a alpha byte */
+/**
+ * @param h degrees, any value (wrapped by 360°)
+ * @param s nominally 0..100 (clamped)
+ * @param l nominally 0..100 (clamped)
+ * @param a alpha byte
+ */
 export function hslToColor(h: number, s: number, l: number, a: number): Color {
+  // CSS: hue wraps by 360°; saturation/lightness clamp to [0%, 100%]. The
+  // wrap stays in degrees where the modulo is exact for integer hues.
+  if (h < 0 || h >= 360) { h = ((h % 360) + 360) % 360 }
+  if (s < 0) { s = 0 } else if (s > 100) { s = 100 }
+  if (l < 0) { l = 0 } else if (l > 100) { l = 100 }
   h /= 360
   s /= 100
   l /= 100
 
+  // With s and l clamped, all channels stay in [0, 1]: no clamping needed.
+  let r, g, b
   if (s === 0) {
-    const v = to255(l) // achromatic
-    return newColor(v, v, v, a)
+    r = g = b = Math.round(l * 255) // achromatic
+  } else {
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s
+    const p = 2 * l - q
+    r = Math.round(hueToRGB(p, q, h + 1 / 3) * 255)
+    g = Math.round(hueToRGB(p, q, h) * 255)
+    b = Math.round(hueToRGB(p, q, h - 1 / 3) * 255)
   }
-  const q = l < 0.5 ? l * (1 + s) : l + s - l * s
-  const p = 2 * l - q
-  return newColor(
-    to255(hueToRGB(p, q, h + 1 / 3)),
-    to255(hueToRGB(p, q, h)),
-    to255(hueToRGB(p, q, h - 1 / 3)),
-    a,
-  )
+  return newColor(r, g, b, a)
 }
 
 // https://www.30secondsofcode.org/js/s/rgb-hex-hsl-hsb-color-format-conversion/
@@ -98,28 +110,45 @@ export function srgbToHsl(r: number, g: number, b: number): RGB {
       : 4 + (r - g) / s
     : 0
 
+  // Saturation branches on lightness (= (2*max - s) / 2), not on max.
   return [
     60 * h < 0 ? 60 * h + 360 : 60 * h,
-    100 * (s ? (max <= 0.5 ? s / (2 * max - s) : s / (2 - (2 * max - s))) : 0),
+    100 * (s ? (2 * max - s <= 1 ? s / (2 * max - s) : s / (2 - (2 * max - s))) : 0),
     (100 * (2 * max - s)) / 2,
   ]
 }
 
 // HWB
 
-/** @param h degrees @param w 0..100 @param b 0..100 @param a alpha byte */
+/**
+ * @param h degrees, any value (wrapped by 360°)
+ * @param w nominally 0..100 (clamped)
+ * @param b nominally 0..100 (clamped)
+ * @param a alpha byte
+ */
 export function hwbToColor(h: number, w: number, b: number, a: number): Color {
+  // CSS: hue wraps by 360°; whiteness/blackness clamp to [0%, 100%]
+  if (h < 0 || h >= 360) { h = ((h % 360) + 360) % 360 }
+  if (w < 0) { w = 0 } else if (w > 100) { w = 100 }
+  if (b < 0) { b = 0 } else if (b > 100) { b = 100 }
   w /= 100
   b /= 100
   h /= 360
 
+  // https://drafts.csswg.org/css-color-4/#hwb-to-rgb
+  if (w + b >= 1) {
+    const gray = to255(w / (w + b)) // achromatic
+    return newColor(gray, gray, gray, a)
+  }
+
   // Pure hue (HSL with s = 1, l = 0.5 reduces to p = 0, q = 1), then apply
-  // whiteness/blackness: channel * (1 - w - b) + w
+  // whiteness/blackness: channel * (1 - w - b) + w. With w and b clamped and
+  // w + b < 1, the result stays in [0, 1]: no clamping needed.
   const scale = 1 - w - b
   return newColor(
-    to255(hueToRGB(0, 1, h + 1 / 3) * scale + w),
-    to255(hueToRGB(0, 1, h) * scale + w),
-    to255(hueToRGB(0, 1, h - 1 / 3) * scale + w),
+    Math.round((hueToRGB(0, 1, h + 1 / 3) * scale + w) * 255),
+    Math.round((hueToRGB(0, 1, h) * scale + w) * 255),
+    Math.round((hueToRGB(0, 1, h - 1 / 3) * scale + w) * 255),
     a,
   )
 }
@@ -183,10 +212,6 @@ export function srgbToOklch(r: number, g: number, b: number): RGB {
 
 // color() predefined color spaces
 // https://drafts.csswg.org/css-color-4/#predefined
-
-export type ColorSpace =
-  | 'srgb' | 'srgb-linear' | 'display-p3' | 'a98-rgb' | 'prophoto-rgb' | 'rec2020'
-  | 'xyz' | 'xyz-d65' | 'xyz-d50'
 
 /** Channel keywords exposed by color(from <origin> <space> …) per color space. */
 export function colorSpaceChannels(space: string): string[] | null {

@@ -35,6 +35,13 @@ const ANGLE_TO_DEG: Record<string, number> = {
   turn: 360,
 }
 
+/** A complete CSS <number>: the lexer's digit scan can overshoot (e.g. "1.2.3", "2e"). */
+const NUMBER = /^(\d+\.?\d*|\.\d+)(e[+-]?\d+)?$/i
+
+function fail(message: string, input: string): never {
+  throw new Error(`calc(): ${message} in "${input}"`)
+}
+
 function lex(input: string, range: number): Token[] {
   const tokens: Token[] = []
   let i = 0
@@ -62,7 +69,11 @@ function lex(input: string, range: number): Token[] {
         if (j < n && (input.charCodeAt(j) === 43 || input.charCodeAt(j) === 45)) j++
         while (j < n && isDigit(input.charCodeAt(j))) j++
       }
-      let value = parseFloat(input.slice(i, j))
+      const raw = input.slice(i, j)
+      if (!NUMBER.test(raw)) {
+        fail(`invalid number "${raw}"`, input)
+      }
+      let value = parseFloat(raw)
       i = j
       // trailing unit: % or angle
       if (i < n && input.charCodeAt(i) === PERCENT) {
@@ -87,12 +98,17 @@ function lex(input: string, range: number): Token[] {
     if (isAlpha(c)) {
       let j = i + 1
       while (j < n && isAlpha(input.charCodeAt(j))) j++
-      tokens.push({ t: 'id', v: input.slice(i, j).toLowerCase() })
+      const id = input.slice(i, j).toLowerCase()
       i = j
+      // `calc(` (outer and nested) reads as a plain parenthesis
+      if (id === 'calc' && i < n && input.charCodeAt(i) === 40) {
+        continue
+      }
+      tokens.push({ t: 'id', v: id })
       continue
     }
 
-    throw new Error(`calc(): unexpected character "${input[i]}" in "${input}"`)
+    fail(`unexpected character "${input[i]}"`, input)
   }
 
   return tokens
@@ -106,9 +122,7 @@ function lex(input: string, range: number): Token[] {
  * @param range percentage reference for the destination channel
  */
 export function evaluateCalc(body: string, scope: Map<string, number>, range: number): number {
-  // Treat `calc(` (outer and nested) as a plain parenthesis.
-  const normalized = body.replace(/calc\(/gi, '(')
-  const tokens = lex(normalized, range)
+  const tokens = lex(body, range)
   let pos = 0
 
   const peek = () => tokens[pos]
@@ -145,7 +159,7 @@ export function evaluateCalc(body: string, scope: Map<string, number>, range: nu
   function parseFactor(): number {
     const tok = next()
     if (!tok) {
-      throw new Error(`calc(): unexpected end of expression in "${body}"`)
+      fail('unexpected end of expression', body)
     }
     switch (tok.t) {
       case 'num':
@@ -155,36 +169,34 @@ export function evaluateCalc(body: string, scope: Map<string, number>, range: nu
         if (tok.v === 'pi') return Math.PI
         if (tok.v === 'e') return Math.E
         if (tok.v === 'infinity') return Infinity
-        if (tok.v === '-infinity') return -Infinity
         if (tok.v === 'nan') return NaN
         if (tok.v === 'none') return 0
-        // `calc(` was normalized to `(`; a bare `calc` id shouldn't appear
         const bound = scope.get(tok.v)
         if (bound === undefined) {
-          throw new Error(`calc(): unknown identifier "${tok.v}" in "${body}"`)
+          fail(`unknown identifier "${tok.v}"`, body)
         }
         return bound
       }
       case 'op':
         if (tok.v === '-') return -parseFactor()
         if (tok.v === '+') return parseFactor()
-        throw new Error(`calc(): unexpected operator "${tok.v}" in "${body}"`)
+        fail(`unexpected "${tok.v}"`, body)
       case 'lparen': {
         const value = parseExpr()
         const close = next()
         if (!close || close.t !== 'rparen') {
-          throw new Error(`calc(): expected ")" in "${body}"`)
+          fail('expected ")"', body)
         }
         return value
       }
       default:
-        throw new Error(`calc(): unexpected token in "${body}"`)
+        fail('unexpected token', body)
     }
   }
 
   const result = parseExpr()
   if (pos !== tokens.length) {
-    throw new Error(`calc(): trailing tokens in "${body}"`)
+    fail('trailing tokens', body)
   }
   return result
 }

@@ -2,6 +2,7 @@ import { expect } from 'chai'
 import * as Color from './index'
 import { parseCSS, colorMix } from './css'
 import { resolveNamed, namedColors } from './namedColors'
+import { srgbToOklch } from './channels'
 
 const c = Color.from
 const hex = (color: number) => Color.formatHEXA(color)
@@ -142,6 +143,108 @@ describe('CSS Color 4/5', () => {
     })
   })
 
+  describe('case-insensitive CSS', () => {
+    it('parses uppercase function names', () => {
+      expect(parseCSS('RGB(255 0 0)')).to.equal(c(0xff0000ff))
+      expect(parseCSS('OKLCH(40.1% 0.123 21.57)')).to.equal(Color.parse('oklch(40.1% 0.123 21.57)'))
+    })
+    it('parses uppercase relative-color keywords', () => {
+      expect(parseCSS('rgb(FROM red r g b)')).to.equal(c(0xff0000ff))
+      expect(parseCSS('RGB(From Red R G B)')).to.equal(c(0xff0000ff))
+    })
+    it('parses uppercase color-mix keywords', () => {
+      expect(parseCSS('color-mix(IN srgb, red, blue)')).to.equal(c(0x800080ff))
+      expect(parseCSS('COLOR-MIX(in hsl LONGER HUE, red, blue)')).to.equal(c(0x00ff00ff))
+    })
+    it('treats units the same in bare tokens and inside calc()', () => {
+      expect(parseCSS('hsl(from red 0.5TURN s l)')).to.equal(parseCSS('hsl(from red calc(0.5TURN) s l)'))
+      expect(parseCSS('hsl(from red 0.5turn s l)')).to.equal(parseCSS('hsl(from red 0.5TURN s l)'))
+    })
+    it('fast parse() also rejects uppercase relative colors', () => {
+      expect(() => Color.parse('rgb(FROM red r g b)')).to.throw()
+    })
+  })
+
+  describe('calc() in absolute color functions', () => {
+    it('evaluates calc() channels', () => {
+      expect(parseCSS('rgb(calc(255 / 2) 0 0)')).to.equal(c(0x800000ff))
+      expect(parseCSS('hsl(calc(60 + 60) 100% 50%)')).to.equal(Color.parse('hsl(120 100% 50%)'))
+      expect(parseCSS('color(srgb calc(0.5 * 2) 0 0)')).to.equal(c(0xff0000ff))
+    })
+    it('supports legacy comma syntax with calc()', () => {
+      expect(parseCSS('rgb(calc(2 * 100), 0, 0)')).to.equal(c(0xc80000ff))
+      expect(parseCSS('rgba(255, 0, 0, calc(0.25 + 0.25))')).to.equal(c(0xff000080))
+    })
+    it('rejects malformed calc()', () => {
+      expect(() => parseCSS('rgb(from red calc(1.2.3) g b)')).to.throw()
+      expect(() => parseCSS('rgb(from red calc(2e) g b)')).to.throw()
+      expect(() => parseCSS('rgb(from red calc(r +) g b)')).to.throw()
+    })
+  })
+
+  describe('relative color validation', () => {
+    it('rejects commas', () => {
+      expect(() => parseCSS('rgb(from red, r, g, b)')).to.throw(/comma/)
+    })
+    it('rejects unknown channel keywords and unsupported functions', () => {
+      expect(() => parseCSS('rgb(from red bogus g b)')).to.throw()
+      expect(() => parseCSS('rgb(from red h g b)')).to.throw()
+      expect(() => parseCSS('rgb(from red min(r, 100) g b)')).to.throw()
+    })
+    it('rejects malformed relative colors', () => {
+      expect(() => parseCSS('rgb(from)')).to.throw()
+      expect(() => parseCSS('rgb(from red r g)')).to.throw()
+      expect(() => parseCSS('rgb(from red r g b 0.5)')).to.throw()
+      expect(() => parseCSS('rgb(from red r g b /)')).to.throw()
+      expect(() => parseCSS('rgb(from red r g b / 0.5 junk)')).to.throw()
+    })
+    it('rejects trailing garbage', () => {
+      expect(() => parseCSS('rgb(from red r g b) junk')).to.throw()
+      expect(() => parseCSS('color-mix(in srgb, red, blue) junk)')).to.throw()
+    })
+  })
+
+  describe('color-mix() validation', () => {
+    it('rejects invalid hue interpolation methods', () => {
+      expect(() => parseCSS('color-mix(in hsl bogus hue, red, blue)')).to.throw()
+      expect(() => parseCSS('color-mix(in srgb junk, red, blue)')).to.throw()
+      expect(() => parseCSS('color-mix(in lab shorter hue, red, blue)')).to.throw()
+    })
+    it('rejects percentages outside [0%, 100%]', () => {
+      expect(() => parseCSS('color-mix(in srgb, red 150%, blue)')).to.throw()
+      expect(() => parseCSS('color-mix(in srgb, red -50%, blue)')).to.throw()
+    })
+    it('rejects extra tokens in a color argument', () => {
+      expect(() => parseCSS('color-mix(in srgb, red blue, white)')).to.throw()
+      expect(() => parseCSS('color-mix(in srgb, red 10% 20%, white)')).to.throw()
+    })
+  })
+
+  describe('color-mix() powerless hue', () => {
+    it('treats an achromatic hue as missing (adopts the other hue)', () => {
+      expect(parseCSS('color-mix(in hsl, white, blue)')).to.equal(c(0x9f9fdfff))
+      expect(parseCSS('color-mix(in hwb, white, blue)')).to.equal(c(0x8080ffff))
+    })
+    it('carries the chromatic hue across oklch', () => {
+      // Lightness and chroma interpolate normally; the hue must come entirely
+      // from blue (white's hue is missing), not from mixing with hue ~0.
+      const [lw, cw] = srgbToOklch(1, 1, 1)
+      const [lb, cb, hb] = srgbToOklch(0, 0, 1)
+      const expected = Color.parse(`oklch(${(lw + lb) / 2} ${(cw + cb) / 2} ${hb})`)
+      expect(parseCSS('color-mix(in oklch, white, blue)')).to.equal(expected)
+    })
+  })
+
+  describe('hsl round-trip (saturation branch)', () => {
+    it('relative hsl identity reproduces the origin', () => {
+      for (const hexStr of ['#993333', '#996633', '#123456', '#0a8020']) {
+        const color = Color.parse(hexStr)
+        expect(parseCSS(`hsl(from ${hexStr} h s l)`)).to.equal(color)
+        expect(colorMix(color, color, { space: 'hsl' })).to.equal(color)
+      }
+    })
+  })
+
   describe('resolver hook', () => {
     it('resolves currentColor / system colors via options.resolve', () => {
       expect(parseCSS('currentColor', { resolve: () => '#123456' })).to.equal(c(0x123456ff))
@@ -150,6 +253,10 @@ describe('CSS Color 4/5', () => {
     it('throws for unresolved keywords', () => {
       expect(() => parseCSS('currentColor')).to.throw()
       expect(() => parseCSS('notacolor')).to.throw()
+    })
+    it('throws instead of recursing forever on self-referential resolvers', () => {
+      expect(() => parseCSS('currentColor', { resolve: () => 'currentColor' })).to.throw(/nested/)
+      expect(() => parseCSS('currentColor', { resolve: () => 'zzz' })).to.throw(/nested|unknown/)
     })
   })
 })

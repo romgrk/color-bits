@@ -110,6 +110,45 @@ describe('Color', () => {
       expect(Color.parse('hsl(120 50 50)')).to.equal(Color.parse('hsl(120 50% 50%)'))
     });
 
+    it('clamps out-of-range rgb channels and alpha instead of bleeding into adjacent bytes', () => {
+      expect(Color.parse('rgb(300 0 0)')).to.equal(c(0xff0000ff))
+      expect(Color.parse('rgb(-10 128 0)')).to.equal(c(0x008000ff))
+      expect(Color.parse('rgb(255 0 0 / 300%)')).to.equal(c(0xff0000ff))
+      expect(Color.parse('rgb(255 0 0 / -1)')).to.equal(c(0xff000000))
+    });
+
+    it('clamps hsl saturation/lightness to [0%, 100%]', () => {
+      expect(Color.parse('hsl(120 150% 50%)')).to.equal(Color.parse('hsl(120 100% 50%)'))
+      expect(Color.parse('hsl(120 -50% 50%)')).to.equal(Color.parse('hsl(120 0% 50%)'))
+    });
+
+    it('wraps hue beyond one turn', () => {
+      expect(Color.parse('hsl(810 50% 50%)')).to.equal(Color.parse('hsl(90 50% 50%)'))
+      expect(Color.parse('hsl(1080 100% 50%)')).to.equal(Color.parse('hsl(0 100% 50%)'))
+      expect(Color.parse('hsl(-480 100% 50%)')).to.equal(Color.parse('hsl(240 100% 50%)'))
+      expect(Color.parse('hwb(770 30% 40%)')).to.equal(Color.parse('hwb(50 30% 40%)'))
+    });
+
+    it('normalizes hwb to gray when whiteness + blackness >= 100%', () => {
+      expect(Color.parse('hwb(120 70% 70%)')).to.equal(c(0x808080ff))
+      expect(Color.parse('hwb(0 100% 100%)')).to.equal(c(0x808080ff))
+      expect(Color.parse('hwb(120 90% 30%)')).to.equal(c(0xbfbfbfff))
+    });
+
+    it('is case-insensitive for function names, units and none', () => {
+      expect(Color.parse('RGB(255 153 85)')).to.equal(c(0xff9955ff))
+      expect(Color.parse('HSL(50DEG 80% 40%)')).to.equal(Color.parse('hsl(50deg 80% 40%)'))
+      expect(Color.parse('hsl(1TURN 80% 40%)')).to.equal(Color.parse('hsl(1turn 80% 40%)'))
+      expect(Color.parse('rgb(NONE 128 64)')).to.equal(c(0x008040ff))
+    });
+
+    it('formats HSL with the correct saturation (lightness branch)', () => {
+      // #993333: l = 0.4 (≤ 0.5) but max = 0.6 (> 0.5) — the branch must test lightness
+      const hsl = Color.toHSLA(Color.parse('#993333'))
+      expect(Math.round(hsl.s)).to.equal(50)
+      expect(Math.round(hsl.l)).to.equal(40)
+    });
+
     it('orients the lab/oklab a (green↔red) and b (blue↔yellow) axes', () => {
       const rgb = (color: string) => {
         const col = Color.parse(color)
