@@ -263,8 +263,8 @@ export function oklabToXyzd65(l: number, a: number, b: number): Vector3 {
   lmsIntermediate[0] = lmsIntermediate[0] * lmsIntermediate[0] * lmsIntermediate[0];
   lmsIntermediate[1] = lmsIntermediate[1] * lmsIntermediate[1] * lmsIntermediate[1];
   lmsIntermediate[2] = lmsIntermediate[2] * lmsIntermediate[2] * lmsIntermediate[2];
-  const xyzOutput = multiplyInto(LMS_TO_XYZ_MATRIX, lmsIntermediate);
-  return xyzOutput;
+
+  return multiplyInto(LMS_TO_XYZ_MATRIX, lmsIntermediate);
 }
 
 export function xyzd65ToOklab(x: number, y: number, z: number): Vector3 {
@@ -275,8 +275,7 @@ export function xyzd65ToOklab(x: number, y: number, z: number): Vector3 {
   lmsIntermediate[1] = Math.pow(lmsIntermediate[1], 1.0 / 3.0);
   lmsIntermediate[2] = Math.pow(lmsIntermediate[2], 1.0 / 3.0);
 
-  const labOutput = multiplyInto(LMS_TO_OKLAB_MATRIX, lmsIntermediate);
-  return [labOutput[0], labOutput[1], labOutput[2]];
+  return multiplyInto(LMS_TO_OKLAB_MATRIX, lmsIntermediate);
 }
 
 export function lchToLab(l: number, c: number, h: number|undefined): Vector3 {
