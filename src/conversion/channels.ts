@@ -44,6 +44,11 @@ import {
 
 type RGB = [number, number, number]
 
+// Single scratch buffer threaded through all conversion chains. Safe to share:
+// conversions are synchronous, never reentrant, and results are read out
+// before the next conversion runs.
+const SCRATCH = new Float64Array(3)
+
 /** sRGB component in [0, 1] -> clamped byte in [0, 255]. */
 function to255(v: number): number {
   return clampByte(v * 255)
@@ -166,48 +171,64 @@ export function srgbToHwb(r: number, g: number, b: number): RGB {
 
 /** @param l 0..100 @param a raw @param b raw @param alpha alpha byte */
 export function labToColor(l: number, a: number, b: number, alpha: number): ColorBits {
-  const rgb = xyzd50ToSrgb(...labToXyzd50(l, a, b))
-  return srgbToColor(rgb[0], rgb[1], rgb[2], alpha)
+  labToXyzd50(l, a, b, SCRATCH)
+  xyzd50ToSrgb(SCRATCH[0], SCRATCH[1], SCRATCH[2], SCRATCH)
+  return srgbToColor(SCRATCH[0], SCRATCH[1], SCRATCH[2], alpha)
 }
 
 /** @param sRGB in [0, 1] @returns [l 0..100, a raw, b raw] */
 export function srgbToLab(r: number, g: number, b: number): RGB {
-  return xyzd50ToLab(...srgbToXyzd50(r, g, b))
+  srgbToXyzd50(r, g, b, SCRATCH)
+  xyzd50ToLab(SCRATCH[0], SCRATCH[1], SCRATCH[2], SCRATCH)
+  return [SCRATCH[0], SCRATCH[1], SCRATCH[2]]
 }
 
 /** @param l 0..100 @param c raw @param h degrees @param alpha alpha byte */
 export function lchToColor(l: number, c: number, h: number, alpha: number): ColorBits {
-  const rgb = xyzd50ToSrgb(...labToXyzd50(...lchToLab(l, c, h)))
-  return srgbToColor(rgb[0], rgb[1], rgb[2], alpha)
+  lchToLab(l, c, h, SCRATCH)
+  labToXyzd50(SCRATCH[0], SCRATCH[1], SCRATCH[2], SCRATCH)
+  xyzd50ToSrgb(SCRATCH[0], SCRATCH[1], SCRATCH[2], SCRATCH)
+  return srgbToColor(SCRATCH[0], SCRATCH[1], SCRATCH[2], alpha)
 }
 
 /** @param sRGB in [0, 1] @returns [l 0..100, c raw, h degrees] */
 export function srgbToLch(r: number, g: number, b: number): RGB {
-  return labToLch(...xyzd50ToLab(...srgbToXyzd50(r, g, b)))
+  srgbToXyzd50(r, g, b, SCRATCH)
+  xyzd50ToLab(SCRATCH[0], SCRATCH[1], SCRATCH[2], SCRATCH)
+  labToLch(SCRATCH[0], SCRATCH[1], SCRATCH[2], SCRATCH)
+  return [SCRATCH[0], SCRATCH[1], SCRATCH[2]]
 }
 
 // OKLab / OKLCH
 
 /** @param l 0..1 @param a raw @param b raw @param alpha alpha byte */
 export function oklabToColor(l: number, a: number, b: number, alpha: number): ColorBits {
-  const rgb = xyzd50ToSrgb(...xyzd65ToD50(...oklabToXyzd65(l, a, b)))
-  return srgbToColor(rgb[0], rgb[1], rgb[2], alpha)
+  oklabToXyzd65(l, a, b, SCRATCH)
+  xyzd65ToD50(SCRATCH[0], SCRATCH[1], SCRATCH[2], SCRATCH)
+  xyzd50ToSrgb(SCRATCH[0], SCRATCH[1], SCRATCH[2], SCRATCH)
+  return srgbToColor(SCRATCH[0], SCRATCH[1], SCRATCH[2], alpha)
 }
 
 /** @param sRGB in [0, 1] @returns [l 0..1, a raw, b raw] */
 export function srgbToOklab(r: number, g: number, b: number): RGB {
-  return xyzd65ToOklab(...xyzd50ToD65(...srgbToXyzd50(r, g, b)))
+  srgbToXyzd50(r, g, b, SCRATCH)
+  xyzd50ToD65(SCRATCH[0], SCRATCH[1], SCRATCH[2], SCRATCH)
+  xyzd65ToOklab(SCRATCH[0], SCRATCH[1], SCRATCH[2], SCRATCH)
+  return [SCRATCH[0], SCRATCH[1], SCRATCH[2]]
 }
 
 /** @param l 0..1 @param c raw @param h degrees @param alpha alpha byte */
 export function oklchToColor(l: number, c: number, h: number, alpha: number): ColorBits {
-  const rgb = xyzd50ToSrgb(...oklchToXyzd50(l, c, h))
-  return srgbToColor(rgb[0], rgb[1], rgb[2], alpha)
+  oklchToXyzd50(l, c, h, SCRATCH)
+  xyzd50ToSrgb(SCRATCH[0], SCRATCH[1], SCRATCH[2], SCRATCH)
+  return srgbToColor(SCRATCH[0], SCRATCH[1], SCRATCH[2], alpha)
 }
 
 /** @param sRGB in [0, 1] @returns [l 0..1, c raw, h degrees] */
 export function srgbToOklch(r: number, g: number, b: number): RGB {
-  return xyzd50ToOklch(...srgbToXyzd50(r, g, b))
+  srgbToXyzd50(r, g, b, SCRATCH)
+  xyzd50ToOklch(SCRATCH[0], SCRATCH[1], SCRATCH[2], SCRATCH)
+  return [SCRATCH[0], SCRATCH[1], SCRATCH[2]]
 }
 
 // color() predefined color spaces
@@ -232,45 +253,55 @@ export function colorSpaceChannels(space: string): string[] | null {
   }
 }
 
+/** @param channels in 0..1 @returns whether the space is known; sRGB in [0, 1] is left in SCRATCH */
+function colorSpaceToSrgbInto(space: string, c1: number, c2: number, c3: number): boolean {
+  switch (space) {
+    case 'srgb':         SCRATCH[0] = c1; SCRATCH[1] = c2; SCRATCH[2] = c3; return true
+    case 'srgb-linear':  srgbLinearToXyzd50(c1, c2, c3, SCRATCH); break
+    case 'display-p3':   displayP3ToXyzd50(c1, c2, c3, SCRATCH); break
+    case 'a98-rgb':      adobeRGBToXyzd50(c1, c2, c3, SCRATCH); break
+    case 'prophoto-rgb': proPhotoToXyzd50(c1, c2, c3, SCRATCH); break
+    case 'rec2020':      rec2020ToXyzd50(c1, c2, c3, SCRATCH); break
+    case 'xyz':
+    case 'xyz-d65':      xyzd65ToD50(c1, c2, c3, SCRATCH); break
+    case 'xyz-d50':      SCRATCH[0] = c1; SCRATCH[1] = c2; SCRATCH[2] = c3; break
+    default:             return false
+  }
+  xyzd50ToSrgb(SCRATCH[0], SCRATCH[1], SCRATCH[2], SCRATCH)
+  return true
+}
+
 /** @param channels in 0..1 @returns sRGB in [0, 1], or null for an unknown space */
 export function colorSpaceToSrgb(space: string, c1: number, c2: number, c3: number): RGB | null {
-  switch (space) {
-    case 'srgb':         return [c1, c2, c3]
-    case 'srgb-linear':  return xyzd50ToSrgb(...srgbLinearToXyzd50(c1, c2, c3))
-    case 'display-p3':   return xyzd50ToSrgb(...displayP3ToXyzd50(c1, c2, c3))
-    case 'a98-rgb':      return xyzd50ToSrgb(...adobeRGBToXyzd50(c1, c2, c3))
-    case 'prophoto-rgb': return xyzd50ToSrgb(...proPhotoToXyzd50(c1, c2, c3))
-    case 'rec2020':      return xyzd50ToSrgb(...rec2020ToXyzd50(c1, c2, c3))
-    case 'xyz':
-    case 'xyz-d65':      return xyzd50ToSrgb(...xyzd65ToD50(c1, c2, c3))
-    case 'xyz-d50':      return xyzd50ToSrgb(c1, c2, c3)
-    default:             return null
+  if (!colorSpaceToSrgbInto(space, c1, c2, c3)) {
+    return null
   }
+  return [SCRATCH[0], SCRATCH[1], SCRATCH[2]]
 }
 
 /** @param channels in 0..1 @returns ColorBits, or null for an unknown space */
 export function colorSpaceToColor(space: string, c1: number, c2: number, c3: number, alpha: number): ColorBits | null {
-  const rgb = colorSpaceToSrgb(space, c1, c2, c3)
-  if (rgb === null) {
+  if (!colorSpaceToSrgbInto(space, c1, c2, c3)) {
     return null
   }
-  return srgbToColor(rgb[0], rgb[1], rgb[2], alpha)
+  return srgbToColor(SCRATCH[0], SCRATCH[1], SCRATCH[2], alpha)
 }
 
 /** @param sRGB in [0, 1] @returns the space's channels in 0..1, or null for an unknown space */
 export function srgbToColorSpace(space: string, r: number, g: number, b: number): RGB | null {
   switch (space) {
     case 'srgb':         return [r, g, b]
-    case 'srgb-linear':  return xyzd50TosRGBLinear(...srgbToXyzd50(r, g, b))
-    case 'display-p3':   return xyzd50ToDisplayP3(...srgbToXyzd50(r, g, b))
-    case 'a98-rgb':      return xyzd50ToAdobeRGB(...srgbToXyzd50(r, g, b))
-    case 'prophoto-rgb': return xyzd50ToProPhoto(...srgbToXyzd50(r, g, b))
-    case 'rec2020':      return xyzd50ToRec2020(...srgbToXyzd50(r, g, b))
+    case 'srgb-linear':  srgbToXyzd50(r, g, b, SCRATCH); xyzd50TosRGBLinear(SCRATCH[0], SCRATCH[1], SCRATCH[2], SCRATCH); break
+    case 'display-p3':   srgbToXyzd50(r, g, b, SCRATCH); xyzd50ToDisplayP3(SCRATCH[0], SCRATCH[1], SCRATCH[2], SCRATCH); break
+    case 'a98-rgb':      srgbToXyzd50(r, g, b, SCRATCH); xyzd50ToAdobeRGB(SCRATCH[0], SCRATCH[1], SCRATCH[2], SCRATCH); break
+    case 'prophoto-rgb': srgbToXyzd50(r, g, b, SCRATCH); xyzd50ToProPhoto(SCRATCH[0], SCRATCH[1], SCRATCH[2], SCRATCH); break
+    case 'rec2020':      srgbToXyzd50(r, g, b, SCRATCH); xyzd50ToRec2020(SCRATCH[0], SCRATCH[1], SCRATCH[2], SCRATCH); break
     case 'xyz':
-    case 'xyz-d65':      return xyzd50ToD65(...srgbToXyzd50(r, g, b))
-    case 'xyz-d50':      return srgbToXyzd50(r, g, b)
+    case 'xyz-d65':      srgbToXyzd50(r, g, b, SCRATCH); xyzd50ToD65(SCRATCH[0], SCRATCH[1], SCRATCH[2], SCRATCH); break
+    case 'xyz-d50':      srgbToXyzd50(r, g, b, SCRATCH); break
     default:             return null
   }
+  return [SCRATCH[0], SCRATCH[1], SCRATCH[2]]
 }
 
 // Color-model registry: one entry per color model, binding the channel

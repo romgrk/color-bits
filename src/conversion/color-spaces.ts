@@ -16,11 +16,13 @@ const D50_Y = 1.0;
 const D50_Z = 0.8251;
 
 // Row-major 3x3 matrix, flat so every matrix shares the same element kind
-// and multiplyInto loads stay monomorphic.
+// and transform loads stay monomorphic.
 type Matrix3x3 = Float64Array;
 
-// PERF: use Float64Array
-type Vector3 = [number, number, number];
+// Every exported conversion takes scalar channels plus a caller-owned `out`
+// buffer it writes to and returns, so conversion chains can run through a
+// single scratch buffer without allocating.
+type Vector3 = Float64Array;
 
 function mat3(
   m00: number, m01: number, m02: number,
@@ -30,16 +32,12 @@ function mat3(
   return Float64Array.of(m00, m01, m02, m10, m11, m12, m20, m21, m22);
 }
 
-function multiplyInto(matrix: Matrix3x3, input: Vector3): Vector3 {
-  const input0 = input[0];
-  const input1 = input[1];
-  const input2 = input[2];
+function transform(matrix: Matrix3x3, c1: number, c2: number, c3: number, out: Vector3): Vector3 {
+  out[0] = matrix[0] * c1 + matrix[1] * c2 + matrix[2] * c3;
+  out[1] = matrix[3] * c1 + matrix[4] * c2 + matrix[5] * c3;
+  out[2] = matrix[6] * c1 + matrix[7] * c2 + matrix[8] * c3;
 
-  input[0] = matrix[0] * input0 + matrix[1] * input1 + matrix[2] * input2;
-  input[1] = matrix[3] * input0 + matrix[4] * input1 + matrix[5] * input2;
-  input[2] = matrix[6] * input0 + matrix[7] * input1 + matrix[8] * input2;
-
-  return input;
+  return out;
 }
 
 // A transfer function mapping encoded values to linear values,
@@ -214,187 +212,171 @@ const XYZD65_TO_SRGB_MATRIX = mat3(
   0.05567030990267439, -0.2040007921971802, 1.0571046720577026,
 );
 
-export function labToXyzd50(l: number, a: number, b: number): Vector3 {
-  let y = (l + 16.0) / 116.0;
-  let x = y + a / 500.0;
-  let z = y - b / 200.0;
+function labInverseTransferFunction(t: number): number {
+  const delta = (24.0 / 116.0);
 
-  function labInverseTransferFunction(t: number): number {
-    const delta = (24.0 / 116.0);
-
-    if (t <= delta) {
-      return (108.0 / 841.0) * (t - (16.0 / 116.0));
-    }
-
-    return t * t * t;
+  if (t <= delta) {
+    return (108.0 / 841.0) * (t - (16.0 / 116.0));
   }
 
-  x = labInverseTransferFunction(x) * D50_X;
-  y = labInverseTransferFunction(y) * D50_Y;
-  z = labInverseTransferFunction(z) * D50_Z;
-
-  return [x, y, z];
+  return t * t * t;
 }
 
-export function xyzd50ToLab(x: number, y: number, z: number): Vector3 {
-  function labTransferFunction(t: number): number {
-    const deltaLimit: number = (24.0 / 116.0) * (24.0 / 116.0) * (24.0 / 116.0);
+function labTransferFunction(t: number): number {
+  const deltaLimit: number = (24.0 / 116.0) * (24.0 / 116.0) * (24.0 / 116.0);
 
-    if (t <= deltaLimit) {
-      return (841.0 / 108.0) * t + (16.0 / 116.0);
-    }
-    return Math.pow(t, 1.0 / 3.0);
+  if (t <= deltaLimit) {
+    return (841.0 / 108.0) * t + (16.0 / 116.0);
   }
+  return Math.pow(t, 1.0 / 3.0);
+}
 
+export function labToXyzd50(l: number, a: number, b: number, out: Vector3): Vector3 {
+  const y = (l + 16.0) / 116.0;
+  const x = y + a / 500.0;
+  const z = y - b / 200.0;
+
+  out[0] = labInverseTransferFunction(x) * D50_X;
+  out[1] = labInverseTransferFunction(y) * D50_Y;
+  out[2] = labInverseTransferFunction(z) * D50_Z;
+
+  return out;
+}
+
+export function xyzd50ToLab(x: number, y: number, z: number, out: Vector3): Vector3 {
   x = labTransferFunction(x / D50_X);
   y = labTransferFunction(y / D50_Y);
   z = labTransferFunction(z / D50_Z);
 
-  const l = 116.0 * y - 16.0;
-  const a = 500.0 * (x - y);
-  const b = 200.0 * (y - z);
+  out[0] = 116.0 * y - 16.0;
+  out[1] = 500.0 * (x - y);
+  out[2] = 200.0 * (y - z);
 
-  return [l, a, b];
+  return out;
 }
 
-export function oklabToXyzd65(l: number, a: number, b: number): Vector3 {
-  const labInput = [l, a, b] as Vector3;
-  const lmsIntermediate = multiplyInto(OKLAB_TO_LMS_MATRIX, labInput);
+export function oklabToXyzd65(l: number, a: number, b: number, out: Vector3): Vector3 {
+  transform(OKLAB_TO_LMS_MATRIX, l, a, b, out);
 
-  lmsIntermediate[0] = lmsIntermediate[0] * lmsIntermediate[0] * lmsIntermediate[0];
-  lmsIntermediate[1] = lmsIntermediate[1] * lmsIntermediate[1] * lmsIntermediate[1];
-  lmsIntermediate[2] = lmsIntermediate[2] * lmsIntermediate[2] * lmsIntermediate[2];
+  const lms0 = out[0];
+  const lms1 = out[1];
+  const lms2 = out[2];
 
-  return multiplyInto(LMS_TO_XYZ_MATRIX, lmsIntermediate);
+  return transform(LMS_TO_XYZ_MATRIX, lms0 * lms0 * lms0, lms1 * lms1 * lms1, lms2 * lms2 * lms2, out);
 }
 
-export function xyzd65ToOklab(x: number, y: number, z: number): Vector3 {
-  const xyzInput = [x, y, z] as Vector3;
-  const lmsIntermediate = multiplyInto(XYZ_TO_LMS_MATRIX, xyzInput);
+export function xyzd65ToOklab(x: number, y: number, z: number, out: Vector3): Vector3 {
+  transform(XYZ_TO_LMS_MATRIX, x, y, z, out);
 
-  lmsIntermediate[0] = Math.pow(lmsIntermediate[0], 1.0 / 3.0);
-  lmsIntermediate[1] = Math.pow(lmsIntermediate[1], 1.0 / 3.0);
-  lmsIntermediate[2] = Math.pow(lmsIntermediate[2], 1.0 / 3.0);
-
-  return multiplyInto(LMS_TO_OKLAB_MATRIX, lmsIntermediate);
+  return transform(
+    LMS_TO_OKLAB_MATRIX,
+    Math.pow(out[0], 1.0 / 3.0),
+    Math.pow(out[1], 1.0 / 3.0),
+    Math.pow(out[2], 1.0 / 3.0),
+    out,
+  );
 }
 
-export function lchToLab(l: number, c: number, h: number|undefined): Vector3 {
+export function lchToLab(l: number, c: number, h: number|undefined, out: Vector3): Vector3 {
+  out[0] = l;
+
   if (h === undefined) {
-    return [l, 0, 0];
+    out[1] = 0;
+    out[2] = 0;
+  } else {
+    out[1] = c * Math.cos(degToRad(h));
+    out[2] = c * Math.sin(degToRad(h));
   }
 
-  return [l, c * Math.cos(degToRad(h)), c * Math.sin(degToRad(h))];
+  return out;
 }
 
-export function labToLch(l: number, a: number, b: number): Vector3 {
-  return [l, Math.sqrt(a * a + b * b), radToDeg(Math.atan2(b, a))];
+export function labToLch(l: number, a: number, b: number, out: Vector3): Vector3 {
+  out[0] = l;
+  out[1] = Math.sqrt(a * a + b * b);
+  out[2] = radToDeg(Math.atan2(b, a));
+
+  return out;
 }
 
-export function displayP3ToXyzd50(r: number, g: number, b: number): Vector3 {
-  const input = [r, g, b] as Vector3;
-  const rgbInput = applyTransferFnsInto(NAMED_TRANSFER_FN.sRGB, input);
-  const xyzOutput = multiplyInto(NAMED_GAMUTS.displayP3, rgbInput);
-  return xyzOutput;
+export function displayP3ToXyzd50(r: number, g: number, b: number, out: Vector3): Vector3 {
+  const fn = NAMED_TRANSFER_FN.sRGB;
+  return transform(NAMED_GAMUTS.displayP3, fn.eval(r), fn.eval(g), fn.eval(b), out);
 }
 
-export function xyzd50ToDisplayP3(x: number, y: number, z: number): Vector3 {
-  const xyzInput = [x, y, z] as Vector3;
-  const rgbOutput = multiplyInto(NAMED_GAMUTS.displayP3_INVERSE, xyzInput);
-  return applyTransferFnsInto(
-      NAMED_TRANSFER_FN.sRGB_INVERSE, rgbOutput);
+export function xyzd50ToDisplayP3(x: number, y: number, z: number, out: Vector3): Vector3 {
+  transform(NAMED_GAMUTS.displayP3_INVERSE, x, y, z, out);
+  return applyTransferFnsInto(NAMED_TRANSFER_FN.sRGB_INVERSE, out);
 }
 
-export function proPhotoToXyzd50(r: number, g: number, b: number): Vector3 {
-  const input = [r, g, b] as Vector3;
-  const rgbInput = applyTransferFnsInto(NAMED_TRANSFER_FN.proPhotoRGB, input);
-  const xyzOutput = multiplyInto(PRO_PHOTO_TO_XYZD50_MATRIX, rgbInput);
-  return xyzOutput;
+export function proPhotoToXyzd50(r: number, g: number, b: number, out: Vector3): Vector3 {
+  const fn = NAMED_TRANSFER_FN.proPhotoRGB;
+  return transform(PRO_PHOTO_TO_XYZD50_MATRIX, fn.eval(r), fn.eval(g), fn.eval(b), out);
 }
 
-export function xyzd50ToProPhoto(x: number, y: number, z: number): Vector3 {
-  const xyzInput = [x, y, z] as Vector3;
-  const rgbOutput = multiplyInto(XYZD50_TO_PRO_PHOTO_MATRIX, xyzInput);
-  return applyTransferFnsInto(NAMED_TRANSFER_FN.proPhotoRGB_INVERSE, rgbOutput);
+export function xyzd50ToProPhoto(x: number, y: number, z: number, out: Vector3): Vector3 {
+  transform(XYZD50_TO_PRO_PHOTO_MATRIX, x, y, z, out);
+  return applyTransferFnsInto(NAMED_TRANSFER_FN.proPhotoRGB_INVERSE, out);
 }
 
-export function adobeRGBToXyzd50(r: number, g: number, b: number): Vector3 {
-  const input = [r, g, b] as Vector3;
-  const rgbInput = applyTransferFnsInto(NAMED_TRANSFER_FN.k2Dot2, input);
-  const xyzOutput = multiplyInto(NAMED_GAMUTS.adobeRGB, rgbInput);
-  return xyzOutput;
+export function adobeRGBToXyzd50(r: number, g: number, b: number, out: Vector3): Vector3 {
+  const fn = NAMED_TRANSFER_FN.k2Dot2;
+  return transform(NAMED_GAMUTS.adobeRGB, fn.eval(r), fn.eval(g), fn.eval(b), out);
 }
 
-export function xyzd50ToAdobeRGB(x: number, y: number, z: number): Vector3 {
-  const xyzInput = [x, y, z] as Vector3;
-  const rgbOutput = multiplyInto(NAMED_GAMUTS.adobeRGB_INVERSE, xyzInput);
-  return applyTransferFnsInto(NAMED_TRANSFER_FN.k2Dot2_INVERSE, rgbOutput);
+export function xyzd50ToAdobeRGB(x: number, y: number, z: number, out: Vector3): Vector3 {
+  transform(NAMED_GAMUTS.adobeRGB_INVERSE, x, y, z, out);
+  return applyTransferFnsInto(NAMED_TRANSFER_FN.k2Dot2_INVERSE, out);
 }
 
-export function rec2020ToXyzd50(r: number, g: number, b: number): Vector3 {
-  const input = [r, g, b] as Vector3;
-  const rgbInput = applyTransferFnsInto(NAMED_TRANSFER_FN.rec2020, input);
-  const xyzOutput = multiplyInto(NAMED_GAMUTS.rec2020, rgbInput);
-  return xyzOutput;
+export function rec2020ToXyzd50(r: number, g: number, b: number, out: Vector3): Vector3 {
+  const fn = NAMED_TRANSFER_FN.rec2020;
+  return transform(NAMED_GAMUTS.rec2020, fn.eval(r), fn.eval(g), fn.eval(b), out);
 }
 
-export function xyzd50ToRec2020(x: number, y: number, z: number): Vector3 {
-  const xyzInput = [x, y, z] as Vector3;
-  const rgbOutput = multiplyInto(NAMED_GAMUTS.rec2020_INVERSE, xyzInput);
-  return applyTransferFnsInto(NAMED_TRANSFER_FN.rec2020_INVERSE, rgbOutput);
+export function xyzd50ToRec2020(x: number, y: number, z: number, out: Vector3): Vector3 {
+  transform(NAMED_GAMUTS.rec2020_INVERSE, x, y, z, out);
+  return applyTransferFnsInto(NAMED_TRANSFER_FN.rec2020_INVERSE, out);
 }
 
-export function xyzd50ToD65(x: number, y: number, z: number): Vector3 {
-  const xyzInput = [x, y, z] as Vector3;
-  const xyzOutput = multiplyInto(XYZD50_TO_XYZD65_MATRIX, xyzInput);
-  return xyzOutput;
+export function xyzd50ToD65(x: number, y: number, z: number, out: Vector3): Vector3 {
+  return transform(XYZD50_TO_XYZD65_MATRIX, x, y, z, out);
 }
 
-export function xyzd65ToD50(x: number, y: number, z: number): Vector3 {
-  const xyzInput = [x, y, z] as Vector3;
-  const xyzOutput = multiplyInto(XYZD65_TO_XYZD50_MATRIX, xyzInput);
-  return xyzOutput;
+export function xyzd65ToD50(x: number, y: number, z: number, out: Vector3): Vector3 {
+  return transform(XYZD65_TO_XYZD50_MATRIX, x, y, z, out);
 }
 
-export function xyzd65TosRGBLinear(x: number, y: number, z: number): Vector3 {
-  const xyzInput = [x, y, z] as Vector3;
-  const rgbResult = multiplyInto(XYZD65_TO_SRGB_MATRIX, xyzInput);
-  return rgbResult;
+export function xyzd65TosRGBLinear(x: number, y: number, z: number, out: Vector3): Vector3 {
+  return transform(XYZD65_TO_SRGB_MATRIX, x, y, z, out);
 }
 
-export function xyzd50TosRGBLinear(x: number, y: number, z: number): Vector3 {
-  const xyzInput = [x, y, z] as Vector3;
-  const rgbResult = multiplyInto(NAMED_GAMUTS.sRGB_INVERSE, xyzInput);
-  return rgbResult;
+export function xyzd50TosRGBLinear(x: number, y: number, z: number, out: Vector3): Vector3 {
+  return transform(NAMED_GAMUTS.sRGB_INVERSE, x, y, z, out);
 }
 
-export function srgbLinearToXyzd50(r: number, g: number, b: number): Vector3 {
-  const rgbInput = [r, g, b] as Vector3;
-  const xyzOutput = multiplyInto(NAMED_GAMUTS.sRGB, rgbInput);
-  return xyzOutput;
+export function srgbLinearToXyzd50(r: number, g: number, b: number, out: Vector3): Vector3 {
+  return transform(NAMED_GAMUTS.sRGB, r, g, b, out);
 }
 
-export function srgbToXyzd50(r: number, g: number, b: number): Vector3 {
-  const input = [r, g, b] as Vector3;
-  const rgbInput = applyTransferFnsInto(NAMED_TRANSFER_FN.sRGB, input);
-  const xyzOutput = multiplyInto(NAMED_GAMUTS.sRGB, rgbInput);
-  return xyzOutput;
+export function srgbToXyzd50(r: number, g: number, b: number, out: Vector3): Vector3 {
+  const fn = NAMED_TRANSFER_FN.sRGB;
+  return transform(NAMED_GAMUTS.sRGB, fn.eval(r), fn.eval(g), fn.eval(b), out);
 }
 
-export function xyzd50ToSrgb(x: number, y: number, z: number): Vector3 {
-  const xyzInput = [x, y, z] as Vector3;
-  const rgbOutput = multiplyInto(NAMED_GAMUTS.sRGB_INVERSE, xyzInput);
-  return applyTransferFnsInto(NAMED_TRANSFER_FN.sRGB_INVERSE, rgbOutput);
+export function xyzd50ToSrgb(x: number, y: number, z: number, out: Vector3): Vector3 {
+  transform(NAMED_GAMUTS.sRGB_INVERSE, x, y, z, out);
+  return applyTransferFnsInto(NAMED_TRANSFER_FN.sRGB_INVERSE, out);
 }
 
-export function oklchToXyzd50(lInput: number, c: number, h: number): Vector3 {
-  const [l, a, b] = lchToLab(lInput, c, h);
-  const [x65, y65, z65] = oklabToXyzd65(l, a, b);
-  return xyzd65ToD50(x65, y65, z65);
+export function oklchToXyzd50(l: number, c: number, h: number, out: Vector3): Vector3 {
+  lchToLab(l, c, h, out);
+  oklabToXyzd65(out[0], out[1], out[2], out);
+  return xyzd65ToD50(out[0], out[1], out[2], out);
 }
 
-export function xyzd50ToOklch(x: number, y: number, z: number): Vector3 {
-  const [x65, y65, z65] = xyzd50ToD65(x, y, z);
-  const [l, a, b] = xyzd65ToOklab(x65, y65, z65);
-  return labToLch(l, a, b);
+export function xyzd50ToOklch(x: number, y: number, z: number, out: Vector3): Vector3 {
+  xyzd50ToD65(x, y, z, out);
+  xyzd65ToOklab(out[0], out[1], out[2], out);
+  return labToLch(out[0], out[1], out[2], out);
 }
