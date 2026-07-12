@@ -149,6 +149,20 @@ describe('Color', () => {
       expect(Math.round(hsl.l)).to.equal(40)
     });
 
+    it('formats HSLA and HWBA in CSS syntax', () => {
+      expect(Color.formatHSLA(Color.parse('#ff0000'))).to.equal('hsla(0 100% 50% / 1)')
+      expect(Color.formatHWBA(Color.parse('#00ffff'))).to.equal('hwb(180 0% 0% / 1)')
+    });
+
+    it('converts to HWB with hue in degrees and w/b in 0..100', () => {
+      const hwb = Color.toHWBA(Color.parse('#993333'))
+      expect(hwb.h).to.equal(0)
+      expect(Math.round(hwb.w)).to.equal(20)
+      expect(Math.round(hwb.b)).to.equal(40)
+      expect(hwb.a).to.equal(1)
+      expect(Color.parse(Color.formatHWBA(Color.parse('#993333')))).to.equal(Color.parse('#993333'))
+    });
+
     it('orients the lab/oklab a (green↔red) and b (blue↔yellow) axes', () => {
       const rgb = (color: string) => {
         const col = Color.parse(color)

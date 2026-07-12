@@ -1,10 +1,8 @@
 import type { ColorBits } from '../core/bits';
 import * as core from '../core/bits'
+import { srgbToHsl, srgbToHwb } from '../conversion/channels'
 
 const { getRed, getGreen, getBlue, getAlpha } = core
-
-// Return buffer, avoid allocations
-const buffer = [0, 0, 0]
 
 /**
  * Map 8-bits value to its hexadecimal representation
@@ -51,106 +49,21 @@ export function toRGBA(color: ColorBits) {
 }
 
 export function formatHSLA(color: ColorBits) {
-  rgbToHSL(
-    getRed(color),
-    getGreen(color),
-    getBlue(color),
-  )
-  const h = buffer[0]
-  const s = buffer[1]
-  const l = buffer[2]
-  const a = getAlpha(color) / 255
-
-  return `hsla(${h} ${s}% ${l}% / ${a})`
+  const [h, s, l] = srgbToHsl(getRed(color) / 255, getGreen(color) / 255, getBlue(color) / 255)
+  return `hsla(${h} ${s}% ${l}% / ${getAlpha(color) / 255})`
 }
 
 export function toHSLA(color: ColorBits) {
-  rgbToHSL(
-    getRed(color),
-    getGreen(color),
-    getBlue(color),
-  )
-  const h = buffer[0]
-  const s = buffer[1]
-  const l = buffer[2]
-  const a = getAlpha(color) / 255
-
-  return { h, s, l, a }
+  const [h, s, l] = srgbToHsl(getRed(color) / 255, getGreen(color) / 255, getBlue(color) / 255)
+  return { h, s, l, a: getAlpha(color) / 255 }
 }
 
 export function formatHWBA(color: ColorBits) {
-  rgbToHWB(
-    getRed(color),
-    getGreen(color),
-    getBlue(color),
-  )
-  const h = buffer[0]
-  const w = buffer[1]
-  const b = buffer[2]
-  const a = getAlpha(color) / 255
-
-  return `hsla(${h} ${w}% ${b}% / ${a})`
+  const [h, w, b] = srgbToHwb(getRed(color) / 255, getGreen(color) / 255, getBlue(color) / 255)
+  return `hwb(${h} ${w}% ${b}% / ${getAlpha(color) / 255})`
 }
 
 export function toHWBA(color: ColorBits) {
-  rgbToHWB(
-    getRed(color),
-    getGreen(color),
-    getBlue(color),
-  )
-  const h = buffer[0]
-  const w = buffer[1]
-  const b = buffer[2]
-  const a = getAlpha(color) / 255
-
-  return { h, w, b, a }
-}
-
-// Conversion functions
-
-// https://www.30secondsofcode.org/js/s/rgb-hex-hsl-hsb-color-format-conversion/
-function rgbToHSL(r: number, g: number, b: number) {
-  r /= 255;
-  g /= 255;
-  b /= 255;
-
-  const max = Math.max(r, g, b);
-  const s = max - Math.min(r, g, b);
-  const h = s
-    ? max === r
-      ? (g - b) / s
-      : max === g
-      ? 2 + (b - r) / s
-      : 4 + (r - g) / s
-    : 0;
-
-  // Saturation branches on lightness (= (2*max - s) / 2), not on max.
-  buffer[0] = 60 * h < 0 ? 60 * h + 360 : 60 * h
-  buffer[1] = 100 * (s ? (2 * max - s <= 1 ? s / (2 * max - s) : s / (2 - (2 * max - s))) : 0)
-  buffer[2] = (100 * (2 * max - s)) / 2
-}
-
-// https://stackoverflow.com/a/29463581/3112706
-function rgbToHWB(r: number, g: number, b: number) {
-  r /= 255
-  g /= 255
-  b /= 255
-  
-  const w = Math.min(r, g, b)
-  const v = Math.max(r, g, b)
-  const black = 1 - v
-  
-  if (v === w) {
-    buffer[0] = 0
-    buffer[1] = w
-    buffer[2] = black
-    return
-  }
-
-  let f = r === w ? g - b : (g === w ? b - r : r - g);
-  let i = r === w ? 3 : (g === w ? 5 : 1);
-
-  buffer[0] = (i - f / (v - w)) / 6
-  buffer[1] = w
-  buffer[2] = black
+  const [h, w, b] = srgbToHwb(getRed(color) / 255, getGreen(color) / 255, getBlue(color) / 255)
+  return { h, w, b, a: getAlpha(color) / 255 }
 }

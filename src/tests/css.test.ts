@@ -191,6 +191,11 @@ describe('CSS Color 4/5', () => {
       expect(() => parseCSS('rgb(from red h g b)')).to.throw()
       expect(() => parseCSS('rgb(from red min(r, 100) g b)')).to.throw()
     })
+    it('rejects Object.prototype names as functions and mix spaces', () => {
+      expect(() => parseCSS('constructor(from red 1 1 1)')).to.throw(/unsupported color function/)
+      expect(() => parseCSS('__proto__(from red 1 1 1)')).to.throw(/unsupported color function/)
+      expect(() => parseCSS('color-mix(in constructor, red, blue)')).to.throw(/unsupported color space/)
+    })
     it('rejects malformed relative colors', () => {
       expect(() => parseCSS('rgb(from)')).to.throw()
       expect(() => parseCSS('rgb(from red r g)')).to.throw()

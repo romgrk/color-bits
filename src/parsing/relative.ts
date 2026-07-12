@@ -14,31 +14,10 @@ import { clampByte } from '../core/bytes'
 import type { Tokens } from './tokenizer'
 import { evaluateCalc } from './calc'
 import { isFromKeyword, parseAngle, parseNumberOrPercentage } from './values'
-import {
-  colorSpaceChannels,
-  colorSpaceToColor,
-  srgbToColorSpace,
-  hslToColor, srgbToHsl,
-  hwbToColor, srgbToHwb,
-  labToColor, srgbToLab,
-  lchToColor, srgbToLch,
-  oklabToColor, srgbToOklab,
-  oklchToColor, srgbToOklch,
-} from '../conversion/channels'
+import type { ColorModel } from '../conversion/channels'
+import { colorModel, colorSpaceModel } from '../conversion/channels'
 
 type RGB = [number, number, number]
-
-interface Model {
-  keys: [string, string, string]
-  /** percentage reference per channel (e.g. 255 for rgb, 1 for oklab L) */
-  ranges: [number, number, number]
-  /** whether each channel is a hue angle */
-  hues: [boolean, boolean, boolean]
-  /** sRGB in [0, 1] -> the model's keyword-unit channels */
-  fromSrgb: (r: number, g: number, b: number) => RGB
-  /** keyword-unit channels + alpha byte -> ColorBits */
-  toColor: (c1: number, c2: number, c3: number, alpha: number) => ColorBits
-}
 
 function rgbFromSrgb(r: number, g: number, b: number): RGB {
   return [r * 255, g * 255, b * 255]
@@ -48,33 +27,21 @@ function rgbToColor(r: number, g: number, b: number, alpha: number): ColorBits {
   return newColor(clampByte(r), clampByte(g), clampByte(b), alpha)
 }
 
-const F = false
-const T = true
-
-const MODELS: Record<string, Model> = {
-  rgb:   { keys: ['r', 'g', 'b'], ranges: [255, 255, 255], hues: [F, F, F], fromSrgb: rgbFromSrgb, toColor: rgbToColor },
-  hsl:   { keys: ['h', 's', 'l'], ranges: [360, 100, 100], hues: [T, F, F], fromSrgb: srgbToHsl,   toColor: hslToColor },
-  hwb:   { keys: ['h', 'w', 'b'], ranges: [360, 100, 100], hues: [T, F, F], fromSrgb: srgbToHwb,   toColor: hwbToColor },
-  lab:   { keys: ['l', 'a', 'b'], ranges: [100, 125, 125], hues: [F, F, F], fromSrgb: srgbToLab,   toColor: labToColor },
-  lch:   { keys: ['l', 'c', 'h'], ranges: [100, 150, 360], hues: [F, F, T], fromSrgb: srgbToLch,   toColor: lchToColor },
-  oklab: { keys: ['l', 'a', 'b'], ranges: [1, 0.4, 0.4],   hues: [F, F, F], fromSrgb: srgbToOklab, toColor: oklabToColor },
-  oklch: { keys: ['l', 'c', 'h'], ranges: [1, 0.4, 360],   hues: [F, F, T], fromSrgb: srgbToOklch, toColor: oklchToColor },
+const RGB_MODEL: ColorModel = {
+  keys: ['r', 'g', 'b'],
+  ranges: [255, 255, 255],
+  hues: [false, false, false],
+  fromSrgb: rgbFromSrgb,
+  toColor: rgbToColor,
 }
-// Legacy aliases
-MODELS.rgba = MODELS.rgb
-MODELS.hsla = MODELS.hsl
 
-function colorSpaceModel(space: string): Model | null {
-  const keys = colorSpaceChannels(space)
-  if (keys === null) {
-    return null
-  }
-  return {
-    keys: keys as [string, string, string],
-    ranges: [1, 1, 1],
-    hues: [F, F, F],
-    fromSrgb: (r, g, b) => srgbToColorSpace(space, r, g, b)!,
-    toColor: (c1, c2, c3, alpha) => colorSpaceToColor(space, c1, c2, c3, alpha)!,
+/** Model for a color function name, including the legacy rgba()/hsla() aliases. */
+function functionModel(name: string): ColorModel | null {
+  switch (name) {
+    case 'rgb':
+    case 'rgba': return RGB_MODEL
+    case 'hsla': return colorModel('hsl')
+    default:     return colorModel(name)
   }
 }
 
@@ -135,7 +102,7 @@ export function resolveColorFunction(tokens: Tokens, parseColor: (input: string)
     fail(`missing origin color in "${name}()"`)
   }
 
-  let model: Model | null
+  let model: ColorModel | null
   let channelStart: number
   const spaceIndex = isRelative ? 2 : 0
   if (name === 'color') {
@@ -143,7 +110,7 @@ export function resolveColorFunction(tokens: Tokens, parseColor: (input: string)
     model = space === undefined ? null : colorSpaceModel(space.toLowerCase())
     channelStart = spaceIndex + 1
   } else {
-    model = MODELS[name] ?? null
+    model = functionModel(name)
     channelStart = spaceIndex
   }
   if (model === null) {

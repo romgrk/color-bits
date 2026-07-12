@@ -272,3 +272,51 @@ export function srgbToColorSpace(space: string, r: number, g: number, b: number)
     default:             return null
   }
 }
+
+// Color-model registry: one entry per color model, binding the channel
+// keywords and conversions above for relative colors and color-mix().
+
+export interface ColorModel {
+  keys: [string, string, string]
+  /** percentage reference per channel (e.g. 100 for lab L, 360 for hues) */
+  ranges: [number, number, number]
+  /** whether each channel is a hue angle */
+  hues: [boolean, boolean, boolean]
+  /** sRGB in [0, 1] -> the model's keyword-unit channels */
+  fromSrgb: (r: number, g: number, b: number) => RGB
+  /** keyword-unit channels + alpha byte -> ColorBits */
+  toColor: (c1: number, c2: number, c3: number, alpha: number) => ColorBits
+}
+
+const F = false
+const T = true
+
+const COLOR_MODELS: Record<string, ColorModel> = {
+  hsl:   { keys: ['h', 's', 'l'], ranges: [360, 100, 100], hues: [T, F, F], fromSrgb: srgbToHsl,   toColor: hslToColor },
+  hwb:   { keys: ['h', 'w', 'b'], ranges: [360, 100, 100], hues: [T, F, F], fromSrgb: srgbToHwb,   toColor: hwbToColor },
+  lab:   { keys: ['l', 'a', 'b'], ranges: [100, 125, 125], hues: [F, F, F], fromSrgb: srgbToLab,   toColor: labToColor },
+  lch:   { keys: ['l', 'c', 'h'], ranges: [100, 150, 360], hues: [F, F, T], fromSrgb: srgbToLch,   toColor: lchToColor },
+  oklab: { keys: ['l', 'a', 'b'], ranges: [1, 0.4, 0.4],   hues: [F, F, F], fromSrgb: srgbToOklab, toColor: oklabToColor },
+  oklch: { keys: ['l', 'c', 'h'], ranges: [1, 0.4, 360],   hues: [F, F, T], fromSrgb: srgbToOklch, toColor: oklchToColor },
+}
+
+/** Model for a color-model name (hsl, oklch, …), or null. Own-key lookup so
+ * that Object.prototype names ('constructor', '__proto__') are not models. */
+export function colorModel(name: string): ColorModel | null {
+  return Object.prototype.hasOwnProperty.call(COLOR_MODELS, name) ? COLOR_MODELS[name] : null
+}
+
+/** Model for a color() predefined space (channels in 0..1), or null. */
+export function colorSpaceModel(space: string): ColorModel | null {
+  const keys = colorSpaceChannels(space)
+  if (keys === null) {
+    return null
+  }
+  return {
+    keys: keys as [string, string, string],
+    ranges: [1, 1, 1],
+    hues: [F, F, F],
+    fromSrgb: (r, g, b) => srgbToColorSpace(space, r, g, b)!,
+    toColor: (c1, c2, c3, alpha) => colorSpaceToColor(space, c1, c2, c3, alpha)!,
+  }
+}

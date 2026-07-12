@@ -4,17 +4,7 @@
 
 import { ColorBits, getRed, getGreen, getBlue, getAlpha } from '../core/bits'
 import { clampByte } from '../core/bytes'
-import {
-  colorSpaceChannels,
-  colorSpaceToColor,
-  srgbToColorSpace,
-  hslToColor, srgbToHsl,
-  hwbToColor, srgbToHwb,
-  labToColor, srgbToLab,
-  lchToColor, srgbToLch,
-  oklabToColor, srgbToOklab,
-  oklchToColor, srgbToOklch,
-} from '../conversion/channels'
+import { colorModel, colorSpaceModel } from '../conversion/channels'
 
 export type HueMethod = 'shorter' | 'longer' | 'increasing' | 'decreasing'
 
@@ -30,33 +20,6 @@ export interface ColorMixOptions {
 }
 
 type RGB = [number, number, number]
-
-interface MixSpace {
-  fromSrgb: (r: number, g: number, b: number) => RGB
-  toColor: (c1: number, c2: number, c3: number, alpha: number) => ColorBits
-  /** index of the hue channel, or -1 for rectangular spaces */
-  hueIndex: number
-}
-
-function mixSpace(space: string): MixSpace | null {
-  switch (space) {
-    case 'hsl':   return { fromSrgb: srgbToHsl,   toColor: hslToColor,   hueIndex: 0 }
-    case 'hwb':   return { fromSrgb: srgbToHwb,   toColor: hwbToColor,   hueIndex: 0 }
-    case 'lab':   return { fromSrgb: srgbToLab,   toColor: labToColor,   hueIndex: -1 }
-    case 'lch':   return { fromSrgb: srgbToLch,   toColor: lchToColor,   hueIndex: 2 }
-    case 'oklab': return { fromSrgb: srgbToOklab, toColor: oklabToColor, hueIndex: -1 }
-    case 'oklch': return { fromSrgb: srgbToOklch, toColor: oklchToColor, hueIndex: 2 }
-    default:
-      if (colorSpaceChannels(space) === null) {
-        return null
-      }
-      return {
-        fromSrgb: (r, g, b) => srgbToColorSpace(space, r, g, b)!,
-        toColor: (c1, c2, c3, alpha) => colorSpaceToColor(space, c1, c2, c3, alpha)!,
-        hueIndex: -1,
-      }
-  }
-}
 
 function fail(message: string): never {
   throw new Error('color-mix(): ' + message)
@@ -96,11 +59,13 @@ function adjustHue(h1: number, h2: number, method: HueMethod): [number, number] 
  * @param options interpolation space, hue method and percentages
  */
 export function colorMix(color1: ColorBits, color2: ColorBits, options: ColorMixOptions): ColorBits {
-  const model = mixSpace(options.space.toLowerCase())
+  const space = options.space.toLowerCase()
+  const model = colorModel(space) ?? colorSpaceModel(space)
   if (model === null) {
     fail(`unsupported color space: "${options.space}"`)
   }
-  if (options.hue !== undefined && model.hueIndex === -1) {
+  const hueIndex = model.hues.indexOf(true)
+  if (options.hue !== undefined && hueIndex === -1) {
     fail(`hue method requires a polar space, got "${options.space}"`)
   }
   const method: HueMethod = options.hue ?? 'shorter'
@@ -145,7 +110,7 @@ export function colorMix(color1: ColorBits, color2: ColorBits, options: ColorMix
   const c1 = model.fromSrgb(r1 / 255, g1 / 255, b1 / 255)
   const c2 = model.fromSrgb(r2 / 255, g2 / 255, b2 / 255)
 
-  const hi = model.hueIndex
+  const hi = hueIndex
   if (hi >= 0) {
     // A powerless hue (achromatic color) is treated as missing and takes the
     // other color's hue. https://drafts.csswg.org/css-color-4/#interpolation-missing
