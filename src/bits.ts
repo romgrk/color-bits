@@ -12,7 +12,6 @@
 const INT32_TO_UINT32_OFFSET = 2 ** 32;
 
 export type ColorBits = number;
-/** @deprecated Use ColorBits instead. */
 export type Color = ColorBits;
 
 export const OFFSET_R = 24;
