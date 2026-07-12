@@ -6,7 +6,7 @@
 
 # Function: alpha()
 
-> **alpha**(`color`, `value`): [`Color`](../type-aliases/Color.md)
+> **alpha**(`color`, `value`): [`ColorBits`](../type-aliases/ColorBits.md)
 
 Modifies color alpha channel.
 
@@ -14,7 +14,7 @@ Modifies color alpha channel.
 
 • **color**: `number`
 
-Color
+ColorBits
 
 • **value**: `number`
 
@@ -22,8 +22,8 @@ Value in the range [0, 1]
 
 ## Returns
 
-[`Color`](../type-aliases/Color.md)
+[`ColorBits`](../type-aliases/ColorBits.md)
 
 ## Defined in
 
-[functions.ts:11](https://github.com/romgrk/color-bits/blob/e6e18569fa37645f22dd4f4c831dece10d0dd00b/src/functions.ts#L11)
+[functions.ts:11](https://github.com/romgrk/color-bits/blob/ad42009e71595e71e45bca95389c03c796a9279e/src/functions.ts#L11)

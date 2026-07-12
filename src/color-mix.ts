@@ -2,7 +2,7 @@
 // premultiplied alpha and the four hue-interpolation methods.
 // https://drafts.csswg.org/css-color-5/#color-mix
 
-import { Color, getRed, getGreen, getBlue, getAlpha } from './core'
+import { ColorBits, getRed, getGreen, getBlue, getAlpha } from './bits'
 import type { Tokens } from './tokenize'
 import { clampByte } from './units'
 import {
@@ -36,7 +36,7 @@ type RGB = [number, number, number]
 
 interface MixSpace {
   fromSrgb: (r: number, g: number, b: number) => RGB
-  toColor: (c1: number, c2: number, c3: number, alpha: number) => Color
+  toColor: (c1: number, c2: number, c3: number, alpha: number) => ColorBits
   /** index of the hue channel, or -1 for rectangular spaces */
   hueIndex: number
 }
@@ -98,7 +98,7 @@ function adjustHue(h1: number, h2: number, method: HueMethod): [number, number] 
  * @param color2 second color
  * @param options interpolation space, hue method and percentages
  */
-export function colorMix(color1: Color, color2: Color, options: ColorMixOptions): Color {
+export function colorMix(color1: ColorBits, color2: ColorBits, options: ColorMixOptions): ColorBits {
   const model = mixSpace(options.space.toLowerCase())
   if (model === null) {
     fail(`unsupported color space: "${options.space}"`)
@@ -191,7 +191,7 @@ export function colorMix(color1: Color, color2: Color, options: ColorMixOptions)
 }
 
 /** Parse one `<color> [<percentage>]` (order-independent) color-mix argument. */
-function parseColorArg(group: string[], parseColor: (input: string) => Color): { color: Color, p?: number } {
+function parseColorArg(group: string[], parseColor: (input: string) => ColorBits): { color: ColorBits, p?: number } {
   let colorToken: string | undefined
   let p: number | undefined
   for (const token of group) {
@@ -218,7 +218,7 @@ function parseColorArg(group: string[], parseColor: (input: string) => Color): {
  * @param tokens tokenized `color-mix(...)`
  * @param parseColor parser for the two color arguments (recursive)
  */
-export function resolveColorMix(tokens: Tokens, parseColor: (input: string) => Color): Color {
+export function resolveColorMix(tokens: Tokens, parseColor: (input: string) => ColorBits): ColorBits {
   // Split the tokens into comma-separated groups: <in-clause>, <color1>, <color2>
   const groups: string[][] = [[]]
   for (const token of tokens.tokens) {

@@ -6,7 +6,7 @@
 
 # Function: newColor()
 
-> **newColor**(`r`, `g`, `b`, `a`): `number`
+> **newColor**(`r`, `g`, `b`, `a`): [`ColorBits`](../type-aliases/ColorBits.md)
 
 Creates a new color from the given RGBA components.
 Every component should be in the [0, 255] range.
@@ -23,8 +23,8 @@ Every component should be in the [0, 255] range.
 
 ## Returns
 
-`number`
+[`ColorBits`](../type-aliases/ColorBits.md)
 
 ## Defined in
 
-[core.ts:16](https://github.com/romgrk/color-bits/blob/e6e18569fa37645f22dd4f4c831dece10d0dd00b/src/core.ts#L16)
+bits.ts:27

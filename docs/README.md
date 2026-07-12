@@ -7,6 +7,7 @@
 ## Type Aliases
 
 - [Color](type-aliases/Color.md)
+- [ColorBits](type-aliases/ColorBits.md)
 
 ## Variables
 

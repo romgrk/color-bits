@@ -21,4 +21,4 @@ This is essentially a cast from int32 to uint32.
 
 ## Defined in
 
-[core.ts:41](https://github.com/romgrk/color-bits/blob/e6e18569fa37645f22dd4f4c831dece10d0dd00b/src/core.ts#L41)
+bits.ts:52

@@ -9,13 +9,13 @@
 //   color(): channels in 0..1
 //
 // The forward direction (`*ToColor`) takes these units plus an alpha byte and
-// returns a Color directly — no intermediate array, so the hot HSL/HWB paths
+// returns ColorBits directly — no intermediate array, so the hot HSL/HWB paths
 // allocate nothing. The reverse direction (`srgbTo*`) takes sRGB in [0, 1] and
 // returns the channel values, for binding relative-color keywords and for
 // color-mix(). Both the absolute parser (parse.ts) and the relative parser
 // route through here, guaranteeing identical results for the same nominal color.
 
-import { Color, newColor } from './core'
+import { ColorBits, newColor } from './bits'
 import { clampByte } from './units'
 import {
   adobeRGBToXyzd50,
@@ -49,8 +49,8 @@ function to255(v: number): number {
   return clampByte(v * 255)
 }
 
-/** Build a Color from sRGB components in [0, 1] and an alpha byte (0..255). */
-export function srgbToColor(r: number, g: number, b: number, a: number): Color {
+/** Build ColorBits from sRGB components in [0, 1] and an alpha byte (0..255). */
+export function srgbToColor(r: number, g: number, b: number, a: number): ColorBits {
   return newColor(to255(r), to255(g), to255(b), a)
 }
 
@@ -73,7 +73,7 @@ function hueToRGB(p: number, q: number, t: number) {
  * @param l nominally 0..100 (clamped)
  * @param a alpha byte
  */
-export function hslToColor(h: number, s: number, l: number, a: number): Color {
+export function hslToColor(h: number, s: number, l: number, a: number): ColorBits {
   // CSS: hue wraps by 360°; saturation/lightness clamp to [0%, 100%]. The
   // wrap stays in degrees where the modulo is exact for integer hues.
   if (h < 0 || h >= 360) { h = ((h % 360) + 360) % 360 }
@@ -126,7 +126,7 @@ export function srgbToHsl(r: number, g: number, b: number): RGB {
  * @param b nominally 0..100 (clamped)
  * @param a alpha byte
  */
-export function hwbToColor(h: number, w: number, b: number, a: number): Color {
+export function hwbToColor(h: number, w: number, b: number, a: number): ColorBits {
   // CSS: hue wraps by 360°; whiteness/blackness clamp to [0%, 100%]
   if (h < 0 || h >= 360) { h = ((h % 360) + 360) % 360 }
   if (w < 0) { w = 0 } else if (w > 100) { w = 100 }
@@ -165,7 +165,7 @@ export function srgbToHwb(r: number, g: number, b: number): RGB {
 // Lab / LCH
 
 /** @param l 0..100 @param a raw @param b raw @param alpha alpha byte */
-export function labToColor(l: number, a: number, b: number, alpha: number): Color {
+export function labToColor(l: number, a: number, b: number, alpha: number): ColorBits {
   const rgb = xyzd50ToSrgb(...labToXyzd50(l, a, b))
   return srgbToColor(rgb[0], rgb[1], rgb[2], alpha)
 }
@@ -176,7 +176,7 @@ export function srgbToLab(r: number, g: number, b: number): RGB {
 }
 
 /** @param l 0..100 @param c raw @param h degrees @param alpha alpha byte */
-export function lchToColor(l: number, c: number, h: number, alpha: number): Color {
+export function lchToColor(l: number, c: number, h: number, alpha: number): ColorBits {
   const rgb = xyzd50ToSrgb(...labToXyzd50(...lchToLab(l, c, h)))
   return srgbToColor(rgb[0], rgb[1], rgb[2], alpha)
 }
@@ -189,7 +189,7 @@ export function srgbToLch(r: number, g: number, b: number): RGB {
 // OKLab / OKLCH
 
 /** @param l 0..1 @param a raw @param b raw @param alpha alpha byte */
-export function oklabToColor(l: number, a: number, b: number, alpha: number): Color {
+export function oklabToColor(l: number, a: number, b: number, alpha: number): ColorBits {
   const rgb = xyzd50ToSrgb(...xyzd65ToD50(...oklabToXyzd65(l, a, b)))
   return srgbToColor(rgb[0], rgb[1], rgb[2], alpha)
 }
@@ -200,7 +200,7 @@ export function srgbToOklab(r: number, g: number, b: number): RGB {
 }
 
 /** @param l 0..1 @param c raw @param h degrees @param alpha alpha byte */
-export function oklchToColor(l: number, c: number, h: number, alpha: number): Color {
+export function oklchToColor(l: number, c: number, h: number, alpha: number): ColorBits {
   const rgb = xyzd50ToSrgb(...oklchToXyzd50(l, c, h))
   return srgbToColor(rgb[0], rgb[1], rgb[2], alpha)
 }
@@ -248,8 +248,8 @@ export function colorSpaceToSrgb(space: string, c1: number, c2: number, c3: numb
   }
 }
 
-/** @param channels in 0..1 @returns a Color, or null for an unknown space */
-export function colorSpaceToColor(space: string, c1: number, c2: number, c3: number, alpha: number): Color | null {
+/** @param channels in 0..1 @returns ColorBits, or null for an unknown space */
+export function colorSpaceToColor(space: string, c1: number, c2: number, c3: number, alpha: number): ColorBits | null {
   const rgb = colorSpaceToSrgb(space, c1, c2, c3)
   if (rgb === null) {
     return null

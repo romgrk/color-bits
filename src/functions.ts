@@ -1,23 +1,23 @@
-import type { Color } from './core';
-import * as core from './core'
+import type { ColorBits } from './bits';
+import * as core from './bits'
 
 const { getRed, getGreen, getBlue, getAlpha, setAlpha, newColor } = core
 
 /**
  * Modifies color alpha channel.
- * @param color - Color
+ * @param color - ColorBits
  * @param value - Value in the range [0, 1]
  */
-export function alpha(color: Color, value: number): Color {
+export function alpha(color: ColorBits, value: number): ColorBits {
   return setAlpha(color, Math.round(value * 255))
 }
 
 /**
  * Darkens a color.
- * @param color - Color
+ * @param color - ColorBits
  * @param coefficient - Multiplier in the range [0, 1]
  */
-export function darken(color: Color, coefficient: number): Color {
+export function darken(color: ColorBits, coefficient: number): ColorBits {
   const r = getRed(color)
   const g = getGreen(color)
   const b = getBlue(color)
@@ -35,10 +35,10 @@ export function darken(color: Color, coefficient: number): Color {
 
 /**
  * Lighten a color.
- * @param color - Color
+ * @param color - ColorBits
  * @param coefficient - Multiplier in the range [0, 1]
  */
-export function lighten(color: Color, coefficient: number): Color {
+export function lighten(color: ColorBits, coefficient: number): ColorBits {
   const r = getRed(color)
   const g = getGreen(color)
   const b = getBlue(color)
@@ -59,7 +59,7 @@ export function lighten(color: Color, coefficient: number): Color {
  * @param opacity Opacity (alpha) for @overlay
  * @param [gamma=1.0] Gamma correction coefficient. `1.0` to match browser behavior, `2.2` for gamma-corrected blending.
  */
-export function blend(background: Color, overlay: Color, opacity: number, gamma = 1.0) {
+export function blend(background: ColorBits, overlay: ColorBits, opacity: number, gamma = 1.0): ColorBits {
   const blendChannel = (b: number, o: number) =>
     Math.round((b ** (1 / gamma) * (1 - opacity) + o ** (1 / gamma) * opacity) ** gamma)
 
@@ -75,7 +75,7 @@ export function blend(background: Color, overlay: Color, opacity: number, gamma 
  * darkest black and 1 for lightest white.
  * @returns The relative brightness of the color in the range 0 - 1, with 3 digits precision
  */
-export function getLuminance(color: Color) {
+export function getLuminance(color: ColorBits) {
   const r = getRed(color) / 255
   const g = getGreen(color) / 255
   const b = getBlue(color) / 255

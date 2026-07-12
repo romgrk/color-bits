@@ -3,7 +3,7 @@
 // This is a separate module (`color-bits/named`) so the fast `parse` core
 // never pulls in the ~1KB table.
 
-import { Color, newColor } from './core'
+import { ColorBits, newColor } from './bits'
 
 const RGB: Record<string, number> = {
   aliceblue            : 0xf0f8ff, antiquewhite         : 0xfaebd7, aqua                 : 0x00ffff, aquamarine           : 0x7fffd4,
@@ -46,11 +46,11 @@ const RGB: Record<string, number> = {
 }
 
 /**
- * Map of CSS named color -> Color (opaque), plus `transparent`.
+ * Map of CSS named color -> ColorBits (opaque), plus `transparent`.
  * Keys are lowercase. Uses a null prototype so lookups of names like
  * `toString` correctly miss.
  */
-export const namedColors: Record<string, Color> = Object.create(null)
+export const namedColors: Record<string, ColorBits> = Object.create(null)
 
 namedColors.transparent = newColor(0, 0, 0, 0)
 for (const name in RGB) {
@@ -60,9 +60,9 @@ for (const name in RGB) {
 
 /**
  * Resolve a CSS named color (case-insensitive), or `transparent`.
- * @returns the Color, or null if the name is not a known color.
+ * @returns the ColorBits, or null if the name is not a known color.
  */
-export function resolveNamed(name: string): Color | null {
+export function resolveNamed(name: string): ColorBits | null {
   const color = namedColors[name.toLowerCase()]
   return color === undefined ? null : color
 }

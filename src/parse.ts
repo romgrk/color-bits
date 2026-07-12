@@ -1,4 +1,4 @@
-import { Color, newColor } from './core';
+import { ColorBits, newColor } from './bits';
 import {
   hslToColor,
   hwbToColor,
@@ -49,7 +49,7 @@ const PATTERN = (() => {
  * `color-mix()`, use `parseCSS` from `color-bits/css`.
  * @param color CSS color string: #xxx, #xxxxxx, #xxxxxxxx, rgb(), rgba(), hsl(), hsla(), color()
  */
-export function parse(color: string): Color {
+export function parse(color: string): ColorBits {
   if (color.charCodeAt(0) === HASH) {
     return parseHex(color);
   } else {
@@ -61,7 +61,7 @@ export function parse(color: string): Color {
  * Parse hexadecimal CSS color
  * @param color Hex color string: #xxx, #xxxxxx, #xxxxxxxx
  */
-export function parseHex(color: string): Color {
+export function parseHex(color: string): ColorBits {
   let r = 0x00;
   let g = 0x00;
   let b = 0x00;
@@ -109,7 +109,7 @@ function hexValue(c: number) {
  * https://developer.mozilla.org/en-US/docs/Web/CSS/color_value
  * @param color CSS color string: rgb(), rgba(), hsl(), hsla(), color()
  */
-export function parseColor(color: string): Color {
+export function parseColor(color: string): ColorBits {
   const match = PATTERN.exec(color);
   if (match !== null) {
     const format = match[1];
@@ -140,7 +140,7 @@ export function parseColor(color: string): Color {
 function parseColorFormat(
   format: string,
   p1: string, p2: string, p3: string, p4: string, p5: string,
-): Color | null {
+): ColorBits | null {
   switch (format) {
     case 'rgb':
     case 'rgba': {

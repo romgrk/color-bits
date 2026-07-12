@@ -6,7 +6,7 @@
 
 # Function: from()
 
-> **from**(`color`): `number`
+> **from**(`color`): [`ColorBits`](../type-aliases/ColorBits.md)
 
 Creates a new color from the given number value, e.g. 0x599eff.
 
@@ -16,8 +16,8 @@ Creates a new color from the given number value, e.g. 0x599eff.
 
 ## Returns
 
-`number`
+[`ColorBits`](../type-aliases/ColorBits.md)
 
 ## Defined in
 
-[core.ts:28](https://github.com/romgrk/color-bits/blob/e6e18569fa37645f22dd4f4c831dece10d0dd00b/src/core.ts#L28)
+bits.ts:39

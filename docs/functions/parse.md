@@ -6,9 +6,11 @@
 
 # Function: parse()
 
-> **parse**(`color`): [`Color`](../type-aliases/Color.md)
+> **parse**(`color`): [`ColorBits`](../type-aliases/ColorBits.md)
 
-Parse CSS color
+Parse CSS color. Fast path: supports hexadecimal and the absolute forms of
+every CSS color function. For named colors, relative colors (`from …`) and
+`color-mix()`, use `parseCSS` from `color-bits/css`.
 
 ## Parameters
 
@@ -18,8 +20,8 @@ CSS color string: #xxx, #xxxxxx, #xxxxxxxx, rgb(), rgba(), hsl(), hsla(), color(
 
 ## Returns
 
-[`Color`](../type-aliases/Color.md)
+[`ColorBits`](../type-aliases/ColorBits.md)
 
 ## Defined in
 
-[parse.ts:38](https://github.com/romgrk/color-bits/blob/e6e18569fa37645f22dd4f4c831dece10d0dd00b/src/parse.ts#L38)
+[parse.ts:52](https://github.com/romgrk/color-bits/blob/ad42009e71595e71e45bca95389c03c796a9279e/src/parse.ts#L52)

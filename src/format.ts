@@ -1,5 +1,5 @@
-import type { Color } from './core';
-import * as core from './core'
+import type { ColorBits } from './bits';
+import * as core from './bits'
 
 const { getRed, getGreen, getBlue, getAlpha } = core
 
@@ -18,7 +18,7 @@ const FORMAT_HEX =
 export const format = formatHEXA;
 
 /** Format to a #RRGGBBAA string */
-export function formatHEXA(color: Color): string {
+export function formatHEXA(color: ColorBits): string {
   return (
     '#' +
     FORMAT_HEX[getRed(color)] +
@@ -28,7 +28,7 @@ export function formatHEXA(color: Color): string {
   )
 }
 
-export function formatHEX(color: Color): string {
+export function formatHEX(color: ColorBits): string {
   return (
     '#' +
     FORMAT_HEX[getRed(color)] +
@@ -37,11 +37,11 @@ export function formatHEX(color: Color): string {
   )
 }
 
-export function formatRGBA(color: Color) {
+export function formatRGBA(color: ColorBits) {
   return `rgba(${getRed(color)} ${getGreen(color)} ${getBlue(color)} / ${getAlpha(color) / 255})`
 }
 
-export function toRGBA(color: Color) {
+export function toRGBA(color: ColorBits) {
   return {
     r: getRed(color),
     g: getGreen(color),
@@ -50,7 +50,7 @@ export function toRGBA(color: Color) {
   }
 }
 
-export function formatHSLA(color: Color) {
+export function formatHSLA(color: ColorBits) {
   rgbToHSL(
     getRed(color),
     getGreen(color),
@@ -64,7 +64,7 @@ export function formatHSLA(color: Color) {
   return `hsla(${h} ${s}% ${l}% / ${a})`
 }
 
-export function toHSLA(color: Color) {
+export function toHSLA(color: ColorBits) {
   rgbToHSL(
     getRed(color),
     getGreen(color),
@@ -78,7 +78,7 @@ export function toHSLA(color: Color) {
   return { h, s, l, a }
 }
 
-export function formatHWBA(color: Color) {
+export function formatHWBA(color: ColorBits) {
   rgbToHWB(
     getRed(color),
     getGreen(color),
@@ -92,7 +92,7 @@ export function formatHWBA(color: Color) {
   return `hsla(${h} ${w}% ${b}% / ${a})`
 }
 
-export function toHWBA(color: Color) {
+export function toHWBA(color: ColorBits) {
   rgbToHWB(
     getRed(color),
     getGreen(color),

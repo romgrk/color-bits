@@ -9,7 +9,7 @@
 // through the same channels.ts math as the absolute parser, so absolute and
 // relative agree.
 
-import { Color, newColor, getRed, getGreen, getBlue, getAlpha } from './core'
+import { ColorBits, newColor, getRed, getGreen, getBlue, getAlpha } from './bits'
 import type { Tokens } from './tokenize'
 import { evaluateCalc } from './calc'
 import { clampByte, isFromKeyword, parseAngle, parseNumberOrPercentage } from './units'
@@ -35,15 +35,15 @@ interface Model {
   hues: [boolean, boolean, boolean]
   /** sRGB in [0, 1] -> the model's keyword-unit channels */
   fromSrgb: (r: number, g: number, b: number) => RGB
-  /** keyword-unit channels + alpha byte -> Color */
-  toColor: (c1: number, c2: number, c3: number, alpha: number) => Color
+  /** keyword-unit channels + alpha byte -> ColorBits */
+  toColor: (c1: number, c2: number, c3: number, alpha: number) => ColorBits
 }
 
 function rgbFromSrgb(r: number, g: number, b: number): RGB {
   return [r * 255, g * 255, b * 255]
 }
 
-function rgbToColor(r: number, g: number, b: number, alpha: number): Color {
+function rgbToColor(r: number, g: number, b: number, alpha: number): ColorBits {
   return newColor(clampByte(r), clampByte(g), clampByte(b), alpha)
 }
 
@@ -113,7 +113,7 @@ function evalChannel(token: string, scope: Map<string, number>, range: number, i
  * @param tokens tokenized function
  * @param parseColor parser for the origin color (recursive; handles nested colors)
  */
-export function resolveColorFunction(tokens: Tokens, parseColor: (input: string) => Color): Color {
+export function resolveColorFunction(tokens: Tokens, parseColor: (input: string) => ColorBits): ColorBits {
   const { name } = tokens
   let args = tokens.tokens
 

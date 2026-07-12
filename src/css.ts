@@ -4,7 +4,7 @@
 // importing it pulls in the named-color table and the relative/color-mix
 // machinery, which is why it is kept separate from the lean `parse` core.
 
-import { Color } from './core'
+import { ColorBits } from './bits'
 import { parse, parseHex } from './parse'
 import { tokenize } from './tokenize'
 import { resolveNamed } from './namedColors'
@@ -17,11 +17,11 @@ export { resolveNamed, namedColors } from './namedColors'
 
 /**
  * Resolves a color keyword that has no fixed value — `currentColor` and system
- * colors (e.g. `Canvas`, `ButtonText`). Return a Color, a CSS color string, or
+ * colors (e.g. `Canvas`, `ButtonText`). Return ColorBits, a CSS color string, or
  * null if unresolved. In the browser this is typically backed by
  * `getComputedStyle`.
  */
-export type ColorResolver = (name: string) => Color | string | null
+export type ColorResolver = (name: string) => ColorBits | string | null
 
 export interface ParseCSSOptions {
   resolve?: ColorResolver
@@ -74,7 +74,7 @@ function firstArgIsFrom(color: string, open: number): boolean {
  * channels, and color-mix(). For `currentColor`/system colors, pass
  * `options.resolve`.
  */
-export function parseCSS(input: string, options?: ParseCSSOptions): Color {
+export function parseCSS(input: string, options?: ParseCSSOptions): ColorBits {
   return parseAny(input, options, 0)
 }
 
@@ -82,7 +82,7 @@ function invalid(color: string): never {
   throw new Error(`parseCSS(): invalid CSS color: "${color}"`)
 }
 
-function parseAny(input: string, options: ParseCSSOptions | undefined, depth: number): Color {
+function parseAny(input: string, options: ParseCSSOptions | undefined, depth: number): ColorBits {
   if (depth > MAX_DEPTH) {
     throw new Error(`parseCSS(): too many nested color references: "${input}"`)
   }
@@ -125,7 +125,7 @@ function parseAny(input: string, options: ParseCSSOptions | undefined, depth: nu
   return parse(color)
 }
 
-function resolveExternal(name: string, options: ParseCSSOptions | undefined, depth: number): Color {
+function resolveExternal(name: string, options: ParseCSSOptions | undefined, depth: number): ColorBits {
   const resolve = options?.resolve
   if (resolve) {
     const result = resolve(name)

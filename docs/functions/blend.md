@@ -6,7 +6,7 @@
 
 # Function: blend()
 
-> **blend**(`background`, `overlay`, `opacity`, `gamma`?): `number`
+> **blend**(`background`, `overlay`, `opacity`, `gamma`?): [`ColorBits`](../type-aliases/ColorBits.md)
 
 Blend (aka mix) two colors together.
 
@@ -30,7 +30,7 @@ Gamma correction coefficient. `1.0` to match browser behavior, `2.2` for gamma-c
 
 ## Returns
 
-`number`
+[`ColorBits`](../type-aliases/ColorBits.md)
 
 ## Opacity
 
@@ -38,4 +38,4 @@ Gamma correction coefficient. `1.0` to match browser behavior, `2.2` for gamma-c
 
 ## Defined in
 
-[functions.ts:62](https://github.com/romgrk/color-bits/blob/e6e18569fa37645f22dd4f4c831dece10d0dd00b/src/functions.ts#L62)
+[functions.ts:62](https://github.com/romgrk/color-bits/blob/ad42009e71595e71e45bca95389c03c796a9279e/src/functions.ts#L62)
