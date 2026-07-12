@@ -1,34 +1,19 @@
 import b from 'benny'
 import { alpha as colorBitsAlpha } from '../src/string'
-import { colord } from 'colord'
-import tinycolor2 from 'tinycolor2'
-import color from 'color'
 import chroma from 'chroma-js'
 import { parse as culoriParse, formatHex8 as culoriFormatHex8 } from 'culori'
 
-const input = '#808080'
+const input = 'oklab(40.1% 0.1143 0.045)'
 
 async function main() {
   // @texel/color is ESM-only; load it dynamically so this file still runs under tsx's CJS.
-  const { hexToRGB, RGBToHex } = (await import('@texel/color')) as any
+  const { parse: texelParse, sRGB, RGBToHex } = (await import('@texel/color')) as any
 
   b.suite(
-    `Parse color, set to 0.5 opacity, and convert back to hexadecimal`,
+    'Parse an OKLab color, set to 0.5 opacity, and convert back to hexadecimal',
 
     b.add('color-bits', () => {
       colorBitsAlpha(input, 0.5)
-    }),
-
-    b.add('colord', () => {
-      colord(input).alpha(0.5).toHex()
-    }),
-
-    b.add('color', () => {
-      color(input).alpha(0.5).hex()
-    }),
-
-    b.add('tinycolor2', () => {
-      tinycolor2(input).setAlpha(0.5).toHexString()
     }),
 
     b.add('chroma-js', () => {
@@ -36,11 +21,13 @@ async function main() {
     }),
 
     b.add('culori', () => {
-      culoriFormatHex8({ ...culoriParse(input), alpha: 0.5 })
+      const parsed = culoriParse(input)!
+      parsed.alpha = 0.5
+      culoriFormatHex8(parsed)
     }),
 
     b.add('@texel/color', () => {
-      const rgb = hexToRGB(input)
+      const rgb = texelParse(input, sRGB)
       rgb[3] = 0.5
       RGBToHex(rgb)
     }),

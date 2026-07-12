@@ -15,7 +15,9 @@
     "docs": "pnpm run docs:core && pnpm run docs:string",
     "docs:core": "typedoc --readme none --plugin typedoc-plugin-markdown --out ./docs ./src/index.ts",
     "docs:string": "typedoc --readme none --plugin typedoc-plugin-markdown --out ./docs/string ./src/string.ts",
-    "benchmark": "tsx ./benchmarks/index.ts",
+    "benchmark": "pnpm run benchmark:srgb",
+    "benchmark:srgb": "tsx ./benchmarks/compare-srgb.ts",
+    "benchmark:oklab": "tsx ./benchmarks/compare-oklab.ts",
     "test": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest --watch"
   },
   "exports": {
