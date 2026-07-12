@@ -27,4 +27,4 @@ Every component should be in the [0, 255] range.
 
 ## Defined in
 
-bits.ts:27
+core/bits.ts:26

@@ -23,4 +23,4 @@ The relative brightness of the color in the range 0 - 1, with 3 digits precision
 
 ## Defined in
 
-[functions.ts:78](https://github.com/romgrk/color-bits/blob/ad42009e71595e71e45bca95389c03c796a9279e/src/functions.ts#L78)
+operations/luminance.ts:9

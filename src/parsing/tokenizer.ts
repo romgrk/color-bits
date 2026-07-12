@@ -1,5 +1,5 @@
 // Nesting-aware scanner for CSS color functions. Unlike the fast-path regex in
-// parse.ts, it correctly handles nested parentheses — needed for relative colors
+// the fast parser, it correctly handles nested parentheses — needed for relative colors
 // whose origin can be another function (`rgb(from hsl(0 100% 50%) r g b)`) and
 // for `calc(...)` channel expressions — and it keeps `/` (the alpha separator)
 // as its own token.

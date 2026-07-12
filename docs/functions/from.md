@@ -20,4 +20,4 @@ Creates a new color from the given number value, e.g. 0x599eff.
 
 ## Defined in
 
-bits.ts:39
+core/bits.ts:38

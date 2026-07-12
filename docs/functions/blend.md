@@ -18,11 +18,11 @@ The background color
 
 • **overlay**: `number`
 
-The overlay color that is affected by
+The overlay color affected by `opacity`
 
 • **opacity**: `number`
 
-Opacity (alpha) for
+Opacity (alpha) for `overlay`
 
 • **gamma?**: `number` = `1.0`
 
@@ -32,10 +32,6 @@ Gamma correction coefficient. `1.0` to match browser behavior, `2.2` for gamma-c
 
 [`ColorBits`](../type-aliases/ColorBits.md)
 
-## Opacity
-
-## Overlay
-
 ## Defined in
 
-[functions.ts:62](https://github.com/romgrk/color-bits/blob/ad42009e71595e71e45bca95389c03c796a9279e/src/functions.ts#L62)
+operations/blend.ts:11

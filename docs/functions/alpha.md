@@ -26,4 +26,4 @@ Value in the range [0, 1]
 
 ## Defined in
 
-[functions.ts:11](https://github.com/romgrk/color-bits/blob/ad42009e71595e71e45bca95389c03c796a9279e/src/functions.ts#L11)
+operations/adjust.ts:9

@@ -6,13 +6,14 @@
 // `parseColor`), then expressed in the destination color model's channels as
 // keyword bindings. Each output channel is a keyword, a number/percentage/
 // angle, `none`, or a calc() expression over those keywords. Results route
-// through the same channels.ts math as the absolute parser, so absolute and
+// through the same conversion math as the absolute parser, so absolute and
 // relative agree.
 
-import { ColorBits, newColor, getRed, getGreen, getBlue, getAlpha } from './bits'
-import type { Tokens } from './tokenize'
+import { ColorBits, newColor, getRed, getGreen, getBlue, getAlpha } from '../core/bits'
+import { clampByte } from '../core/bytes'
+import type { Tokens } from './tokenizer'
 import { evaluateCalc } from './calc'
-import { clampByte, isFromKeyword, parseAngle, parseNumberOrPercentage } from './units'
+import { isFromKeyword, parseAngle, parseNumberOrPercentage } from './values'
 import {
   colorSpaceChannels,
   colorSpaceToColor,
@@ -23,7 +24,7 @@ import {
   lchToColor, srgbToLch,
   oklabToColor, srgbToOklab,
   oklchToColor, srgbToOklch,
-} from './channels'
+} from '../conversion/channels'
 
 type RGB = [number, number, number]
 

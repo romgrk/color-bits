@@ -12,11 +12,11 @@
 // returns ColorBits directly — no intermediate array, so the hot HSL/HWB paths
 // allocate nothing. The reverse direction (`srgbTo*`) takes sRGB in [0, 1] and
 // returns the channel values, for binding relative-color keywords and for
-// color-mix(). Both the absolute parser (parse.ts) and the relative parser
+// color-mix(). Both the fast parser and the relative parser
 // route through here, guaranteeing identical results for the same nominal color.
 
-import { ColorBits, newColor } from './bits'
-import { clampByte } from './units'
+import { ColorBits, newColor } from '../core/bits'
+import { clampByte } from '../core/bytes'
 import {
   adobeRGBToXyzd50,
   displayP3ToXyzd50,
@@ -40,7 +40,7 @@ import {
   xyzd50TosRGBLinear,
   xyzd65ToD50,
   xyzd65ToOklab,
-} from './convert'
+} from './color-spaces'
 
 type RGB = [number, number, number]
 

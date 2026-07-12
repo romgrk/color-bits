@@ -1,26 +1,18 @@
-// Primitive CSS value parsers shared by the absolute parser (parse.ts) and the
-// relative parser (relative.ts). Kept in their own module so both paths use the
-// exact same unit conventions and neither can drift from the other.
+// Primitive CSS value parsers shared by the fast and relative parsers. Kept in
+// their own module so both paths use the exact same unit conventions and neither
+// can drift from the other.
 //
 // Keyword and unit matching is ASCII case-insensitive, as CSS is: comparisons
 // use `charCode | 0x20`, which lowercases A-Z and leaves digits, '.', '-', '+'
 // and '%' unchanged.
+
+import { clampByte } from '../core/bytes'
 
 const PERCENT = 37; // '%'
 const G = 103;      // 'g'
 const N = 110;      // 'n'
 const D = 100;      // 'd'
 const E = 101;      // 'e'
-
-/**
- * Round and clamp a channel value to a [0, 255] byte. NaN passes through (it
- * packs as 0 in newColor), matching the lenient fast path; strict entry points
- * (parseCSS channels) reject NaN before getting here.
- */
-export function clampByte(value: number): number {
-  const n = Math.round(value);
-  return n < 0 ? 0 : n > 255 ? 255 : n;
-}
 
 /** ASCII case-insensitive check for the `from` keyword of relative colors. */
 export function isFromKeyword(token: string): boolean {

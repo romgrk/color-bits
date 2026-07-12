@@ -1,8 +1,8 @@
 import { expect } from 'chai'
-import * as Color from './index'
-import { parseCSS, colorMix } from './css'
-import { resolveNamed, namedColors } from './namedColors'
-import { srgbToOklch } from './channels'
+import * as Color from '../index'
+import { parseCSS, colorMix } from '../css'
+import { resolveNamed, namedColors } from '../namedColors'
+import { srgbToOklch } from '../conversion/channels'
 
 const c = Color.from
 const hex = (color: number) => Color.formatHEXA(color)

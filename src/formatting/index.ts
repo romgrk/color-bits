@@ -1,5 +1,5 @@
-import type { ColorBits } from './bits';
-import * as core from './bits'
+import type { ColorBits } from '../core/bits';
+import * as core from '../core/bits'
 
 const { getRed, getGreen, getBlue, getAlpha } = core
 

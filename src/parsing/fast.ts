@@ -1,4 +1,4 @@
-import { ColorBits, newColor } from './bits';
+import { ColorBits, newColor } from '../core/bits';
 import {
   hslToColor,
   hwbToColor,
@@ -7,7 +7,7 @@ import {
   oklabToColor,
   oklchToColor,
   colorSpaceToColor,
-} from './channels'
+} from '../conversion/channels'
 import {
   isFromKeyword,
   parseColorChannel,
@@ -16,7 +16,7 @@ import {
   parsePercent,
   parsePercentageOrValue,
   parseNumberOrPercentage,
-} from './units'
+} from './values'
 
 const HASH = 35; // '#'
 

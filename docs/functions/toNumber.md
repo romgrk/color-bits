@@ -21,4 +21,4 @@ This is essentially a cast from int32 to uint32.
 
 ## Defined in
 
-bits.ts:52
+core/bits.ts:51

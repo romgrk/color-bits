@@ -2,9 +2,8 @@
 // premultiplied alpha and the four hue-interpolation methods.
 // https://drafts.csswg.org/css-color-5/#color-mix
 
-import { ColorBits, getRed, getGreen, getBlue, getAlpha } from './bits'
-import type { Tokens } from './tokenize'
-import { clampByte } from './units'
+import { ColorBits, getRed, getGreen, getBlue, getAlpha } from '../core/bits'
+import { clampByte } from '../core/bytes'
 import {
   colorSpaceChannels,
   colorSpaceToColor,
@@ -15,9 +14,7 @@ import {
   lchToColor, srgbToLch,
   oklabToColor, srgbToOklab,
   oklchToColor, srgbToOklch,
-} from './channels'
-
-const PERCENT = 37 // '%'
+} from '../conversion/channels'
 
 export type HueMethod = 'shorter' | 'longer' | 'increasing' | 'decreasing'
 
@@ -188,72 +185,4 @@ export function colorMix(color1: ColorBits, color2: ColorBits, options: ColorMix
 
   const alphaByte = clampByte(mixedAlpha * alphaMultiplier * 255)
   return model.toColor(out[0], out[1], out[2], alphaByte)
-}
-
-/** Parse one `<color> [<percentage>]` (order-independent) color-mix argument. */
-function parseColorArg(group: string[], parseColor: (input: string) => ColorBits): { color: ColorBits, p?: number } {
-  let colorToken: string | undefined
-  let p: number | undefined
-  for (const token of group) {
-    if (token.charCodeAt(token.length - 1) === PERCENT) {
-      if (p !== undefined) {
-        fail(`unexpected "${token}"`)
-      }
-      p = parseFloat(token)
-    } else {
-      if (colorToken !== undefined) {
-        fail(`unexpected "${token}"`)
-      }
-      colorToken = token
-    }
-  }
-  if (colorToken === undefined) {
-    fail('missing color')
-  }
-  return { color: parseColor(colorToken), p }
-}
-
-/**
- * Resolve a color-mix() from its tokenized form.
- * @param tokens tokenized `color-mix(...)`
- * @param parseColor parser for the two color arguments (recursive)
- */
-export function resolveColorMix(tokens: Tokens, parseColor: (input: string) => ColorBits): ColorBits {
-  // Split the tokens into comma-separated groups: <in-clause>, <color1>, <color2>
-  const groups: string[][] = [[]]
-  for (const token of tokens.tokens) {
-    if (token === ',') {
-      groups.push([])
-    } else {
-      groups[groups.length - 1].push(token)
-    }
-  }
-  if (groups.length !== 3) {
-    fail('expected "in <space>, <color>, <color>"')
-  }
-
-  // CSS keywords are ASCII case-insensitive.
-  const inClause = groups[0].map((token) => token.toLowerCase())
-  if (inClause[0] !== 'in' || inClause[1] === undefined) {
-    fail('expected "in <space>, <color>, <color>"')
-  }
-  const space = inClause[1]
-
-  // `in <space>` alone, or `in <space> <method> hue` exactly.
-  let hue: HueMethod | undefined
-  if (inClause.length !== 2) {
-    const method = inClause[2]
-    if (
-      inClause.length !== 4 || inClause[3] !== 'hue' ||
-      (method !== 'shorter' && method !== 'longer' && method !== 'increasing' && method !== 'decreasing')
-    ) {
-      fail(`invalid interpolation: "${groups[0].join(' ')}"`)
-    }
-    hue = method
-  }
-
-  const arg1 = parseColorArg(groups[1], parseColor)
-  const arg2 = parseColorArg(groups[2], parseColor)
-
-  return colorMix(arg1.color, arg2.color, { space, hue, p1: arg1.p, p2: arg2.p })
 }
