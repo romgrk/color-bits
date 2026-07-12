@@ -1,4 +1,5 @@
 import type { ColorBits } from '../core/bits'
+import { colorSpaceModel } from '../conversion/channels'
 import { colorMix } from '../operations/color-mix'
 import type { HueMethod } from '../operations/color-mix'
 import type { Tokens } from './tokenizer'
@@ -71,5 +72,6 @@ export function resolveColorMix(tokens: Tokens, parseColor: (input: string) => C
   const arg1 = parseColorArg(groups[1], parseColor)
   const arg2 = parseColorArg(groups[2], parseColor)
 
-  return colorMix(arg1.color, arg2.color, { space, hue, p1: arg1.p, p2: arg2.p })
+  // CSS also allows predefined color() spaces, which have no named model.
+  return colorMix(arg1.color, arg2.color, { space: colorSpaceModel(space) ?? space, hue, p1: arg1.p, p2: arg2.p })
 }

@@ -1,6 +1,6 @@
 import { expect } from 'chai'
 import * as Color from '../index'
-import { parseCSS, colorMix } from '../css'
+import { parseCSS, colorMix, colorSpaceModel } from '../css'
 import { resolveNamed, namedColors } from '../namedColors'
 import { srgbToOklch } from '../conversion/channels'
 
@@ -53,6 +53,10 @@ describe('CSS Color 4/5', () => {
       expect(parseCSS('oklch(from green l c h)')).to.equal(c(0x008000ff))
       expect(parseCSS('color(from red display-p3 r g b)')).to.equal(c(0xff0000ff))
       expect(parseCSS('color(from green xyz x y z)')).to.equal(c(0x008000ff))
+    })
+    it('supports the legacy rgba()/hsla() aliases', () => {
+      expect(parseCSS('rgba(from red r g b / 50%)')).to.equal(c(0xff000080))
+      expect(parseCSS('hsla(from red h s l / 50%)')).to.equal(c(0xff000080))
     })
     it('overrides channels with numbers and percentages', () => {
       expect(parseCSS('rgb(from red 0 g b)')).to.equal(c(0x000000ff))
@@ -115,6 +119,10 @@ describe('CSS Color 4/5', () => {
       expect(parseCSS('color-mix(in srgb, red, blue)')).to.equal(c(0x800080ff))
       expect(parseCSS('color-mix(in srgb, red 100%, blue)')).to.equal(c(0xff0000ff))
     })
+    it('mixes in predefined color() spaces', () => {
+      expect(parseCSS('color-mix(in xyz, red, red)')).to.equal(c(0xff0000ff))
+      expect(parseCSS('color-mix(in display-p3, red 100%, blue)')).to.equal(c(0xff0000ff))
+    })
     it('mixes in HSL with hue interpolation methods', () => {
       expect(parseCSS('color-mix(in hsl, red, blue)')).to.equal(c(0xff00ffff))
       expect(parseCSS('color-mix(in hsl longer hue, red, blue)')).to.equal(c(0x00ff00ff))
@@ -125,12 +133,18 @@ describe('CSS Color 4/5', () => {
     it('exposes a programmatic colorMix over parsed colors', () => {
       const red = Color.parse('#ff0000')
       const blue = Color.parse('#0000ff')
-      expect(colorMix(red, blue, { space: 'srgb' })).to.equal(c(0x800080ff))
+      expect(colorMix(red, blue, { space: 'hsl' })).to.equal(c(0xff00ffff))
+      // predefined color() spaces take a model instead of a name
+      expect(colorMix(red, blue, { space: colorSpaceModel('srgb')! })).to.equal(c(0x800080ff))
+      expect(() => colorMix(red, blue, { space: 'srgb' })).to.throw(/unsupported color space/)
     })
     it('mixing a color with itself is identity in every space', () => {
       const red = Color.parse('#ff0000')
-      for (const space of ['srgb', 'srgb-linear', 'lab', 'oklab', 'lch', 'oklch', 'hsl', 'hwb', 'xyz']) {
+      for (const space of ['lab', 'oklab', 'lch', 'oklch', 'hsl', 'hwb']) {
         expect(colorMix(red, red, { space })).to.equal(c(0xff0000ff))
+      }
+      for (const space of ['srgb', 'srgb-linear', 'xyz']) {
+        expect(colorMix(red, red, { space: colorSpaceModel(space)! })).to.equal(c(0xff0000ff))
       }
     })
     it('honors 0% / 100% endpoints', () => {

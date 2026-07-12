@@ -13,6 +13,8 @@ import { resolveColorMix } from './color-mix'
 
 export { colorMix } from '../operations/color-mix'
 export type { HueMethod, ColorMixOptions } from '../operations/color-mix'
+export { colorModel, colorSpaceModel } from '../conversion/channels'
+export type { ColorModel } from '../conversion/channels'
 export { resolveNamed, namedColors } from './named-colors'
 
 /**

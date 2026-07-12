@@ -4,13 +4,14 @@
 
 import { ColorBits, getRed, getGreen, getBlue, getAlpha } from '../core/bits'
 import { clampByte } from '../core/bytes'
-import { colorModel, colorSpaceModel } from '../conversion/channels'
+import type { ColorModel } from '../conversion/channels'
+import { colorModel } from '../conversion/channels'
 
 export type HueMethod = 'shorter' | 'longer' | 'increasing' | 'decreasing'
 
 export interface ColorMixOptions {
-  /** interpolation color space, e.g. "oklab", "srgb", "hsl", "oklch" */
-  space: string
+  /** interpolation space: a model name ("oklab", "hsl", …) or a ColorModel, e.g. colorSpaceModel('srgb') */
+  space: string | ColorModel
   /** hue interpolation method for polar spaces (default "shorter") */
   hue?: HueMethod
   /** percentage (0..100) of color1; defaults derived from p2 or 50 */
@@ -59,14 +60,14 @@ function adjustHue(h1: number, h2: number, method: HueMethod): [number, number] 
  * @param options interpolation space, hue method and percentages
  */
 export function colorMix(color1: ColorBits, color2: ColorBits, options: ColorMixOptions): ColorBits {
-  const space = options.space.toLowerCase()
-  const model = colorModel(space) ?? colorSpaceModel(space)
+  const { space } = options
+  const model = typeof space === 'string' ? colorModel(space.toLowerCase()) : space
   if (model === null) {
-    fail(`unsupported color space: "${options.space}"`)
+    fail(`unsupported color space: "${space}"`)
   }
   const hueIndex = model.hues.indexOf(true)
   if (options.hue !== undefined && hueIndex === -1) {
-    fail(`hue method requires a polar space, got "${options.space}"`)
+    fail('hue method requires a polar space')
   }
   const method: HueMethod = options.hue ?? 'shorter'
 
