@@ -20,4 +20,4 @@
 
 ## Defined in
 
-[string.ts:15](https://github.com/romgrk/color-bits/blob/e6e18569fa37645f22dd4f4c831dece10d0dd00b/src/string.ts#L15)
+[string.ts:15](https://github.com/romgrk/color-bits/blob/6ad38adf5678ccf89ae347745136b59f1fdddc7e/src/string.ts#L15)

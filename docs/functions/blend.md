@@ -34,4 +34,4 @@ Gamma correction coefficient. `1.0` to match browser behavior, `2.2` for gamma-c
 
 ## Defined in
 
-operations/blend.ts:11
+[operations/blend.ts:11](https://github.com/romgrk/color-bits/blob/6ad38adf5678ccf89ae347745136b59f1fdddc7e/src/operations/blend.ts#L11)

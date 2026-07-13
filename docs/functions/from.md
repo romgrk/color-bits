@@ -20,4 +20,4 @@ Creates a new color from the given number value, e.g. 0x599eff.
 
 ## Defined in
 
-core/bits.ts:38
+[core/bits.ts:38](https://github.com/romgrk/color-bits/blob/6ad38adf5678ccf89ae347745136b59f1fdddc7e/src/core/bits.ts#L38)
