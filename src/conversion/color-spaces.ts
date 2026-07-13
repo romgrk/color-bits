@@ -212,6 +212,14 @@ const XYZD65_TO_SRGB_MATRIX = mat3(
   0.05567030990267439, -0.2040007921971802, 1.0571046720577026,
 );
 
+// PERF: fusing these matrix chains at load (e.g. LMS->linear-sRGB, or
+// gamut ∘ sRGB_INVERSE for color() endpoints) collapses each conversion to one
+// matrix and benched ~30% faster on oklab — tried and reverted. Its re-rounding
+// shifts achromatic a/b (e.g. white->oklab) by ~1e-16 absolute, which is
+// thousands of ulps against the near-zero result, breaking bit-parity with the
+// Chromium XYZ-hub chain that the float-domain API commits to. Packed 8-bit
+// output is unaffected; revisit only if that parity guarantee is dropped.
+
 function labInverseTransferFunction(t: number): number {
   const delta = (24.0 / 116.0);
 
