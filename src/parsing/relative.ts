@@ -17,11 +17,17 @@ import { isFromKeyword, parseAngle, parseNumberOrPercentage } from './values'
 import type { ColorModel } from '../conversion/channels'
 import { colorModel, colorSpaceModel } from '../conversion/channels'
 
-type RGB = [number, number, number]
-
-function rgbFromSrgb(r: number, g: number, b: number): RGB {
-  return [r * 255, g * 255, b * 255]
+function rgbFromSrgb(r: number, g: number, b: number, out: Float64Array): Float64Array {
+  out[0] = r * 255
+  out[1] = g * 255
+  out[2] = b * 255
+  return out
 }
+
+// Scratch for the origin's channel values; reuse is safe because the origin is
+// fully parsed before fromSrgb runs, and the values are copied into the scope
+// Map right away.
+const ORIGIN_CHANNELS = new Float64Array(3)
 
 function rgbToColor(r: number, g: number, b: number, alpha: number): ColorBits {
   return newColor(clampByte(r), clampByte(g), clampByte(b), alpha)
@@ -122,11 +128,11 @@ export function resolveColorFunction(tokens: Tokens, parseColor: (input: string)
   if (isRelative) {
     origin = parseColor(args[1])
     const [k1, k2, k3] = model.keys
-    const [v1, v2, v3] = model.fromSrgb(getRed(origin) / 255, getGreen(origin) / 255, getBlue(origin) / 255)
+    model.fromSrgb(getRed(origin) / 255, getGreen(origin) / 255, getBlue(origin) / 255, ORIGIN_CHANNELS)
     scope = new Map<string, number>()
-    scope.set(k1, v1)
-    scope.set(k2, v2)
-    scope.set(k3, v3)
+    scope.set(k1, ORIGIN_CHANNELS[0])
+    scope.set(k2, ORIGIN_CHANNELS[1])
+    scope.set(k3, ORIGIN_CHANNELS[2])
     scope.set('alpha', getAlpha(origin) / 255)
   }
 

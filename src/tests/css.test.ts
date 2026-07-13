@@ -247,8 +247,8 @@ describe('CSS Color 4/5', () => {
     it('carries the chromatic hue across oklch', () => {
       // Lightness and chroma interpolate normally; the hue must come entirely
       // from blue (white's hue is missing), not from mixing with hue ~0.
-      const [lw, cw] = srgbToOklch(1, 1, 1)
-      const [lb, cb, hb] = srgbToOklch(0, 0, 1)
+      const [lw, cw] = srgbToOklch(1, 1, 1, new Float64Array(3))
+      const [lb, cb, hb] = srgbToOklch(0, 0, 1, new Float64Array(3))
       const expected = Color.parse(`oklch(${(lw + lb) / 2} ${(cw + cb) / 2} ${hb})`)
       expect(parseCSS('color-mix(in oklch, white, blue)')).to.equal(expected)
     })

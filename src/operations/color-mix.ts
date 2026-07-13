@@ -20,7 +20,9 @@ export interface ColorMixOptions {
   p2?: number
 }
 
-type RGB = [number, number, number]
+// Both interpolation endpoints are alive at once, so each gets its own buffer.
+const CHANNELS_1 = new Float64Array(3)
+const CHANNELS_2 = new Float64Array(3)
 
 function fail(message: string): never {
   throw new Error('color-mix(): ' + message)
@@ -108,8 +110,8 @@ export function colorMix(color1: ColorBits, color2: ColorBits, options: ColorMix
   const r2 = getRed(color2), g2 = getGreen(color2), b2 = getBlue(color2)
   const a1 = getAlpha(color1) / 255
   const a2 = getAlpha(color2) / 255
-  const c1 = model.fromSrgb(r1 / 255, g1 / 255, b1 / 255)
-  const c2 = model.fromSrgb(r2 / 255, g2 / 255, b2 / 255)
+  const c1 = model.fromSrgb(r1 / 255, g1 / 255, b1 / 255, CHANNELS_1)
+  const c2 = model.fromSrgb(r2 / 255, g2 / 255, b2 / 255, CHANNELS_2)
 
   const hi = hueIndex
   if (hi >= 0) {
@@ -138,7 +140,6 @@ export function colorMix(color1: ColorBits, color2: ColorBits, options: ColorMix
   }
 
   const mixedAlpha = a1 * w1 + a2 * w2
-  const out: RGB = [0, 0, 0]
   for (let i = 0; i < 3; i++) {
     let v = c1[i] * w1 + c2[i] * w2
     if (i === hi) {
@@ -146,9 +147,9 @@ export function colorMix(color1: ColorBits, color2: ColorBits, options: ColorMix
     } else if (mixedAlpha !== 0) {
       v /= mixedAlpha // un-premultiply
     }
-    out[i] = v
+    c1[i] = v
   }
 
   const alphaByte = clampByte(mixedAlpha * alphaMultiplier * 255)
-  return model.toColor(out[0], out[1], out[2], alphaByte)
+  return model.toColor(c1[0], c1[1], c1[2], alphaByte)
 }

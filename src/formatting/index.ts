@@ -4,6 +4,9 @@ import { srgbToHsl, srgbToHwb } from '../conversion/channels'
 
 const { getRed, getGreen, getBlue, getAlpha } = core
 
+// Scratch for srgbToHsl/srgbToHwb results; read out before the next call.
+const SCRATCH = new Float64Array(3)
+
 /**
  * Map 8-bits value to its hexadecimal representation
  * ['00', '01', '02', ..., 'fe', 'ff']
@@ -49,21 +52,21 @@ export function toRGBA(color: ColorBits) {
 }
 
 export function formatHSLA(color: ColorBits) {
-  const [h, s, l] = srgbToHsl(getRed(color) / 255, getGreen(color) / 255, getBlue(color) / 255)
-  return `hsla(${h} ${s}% ${l}% / ${getAlpha(color) / 255})`
+  srgbToHsl(getRed(color) / 255, getGreen(color) / 255, getBlue(color) / 255, SCRATCH)
+  return `hsla(${SCRATCH[0]} ${SCRATCH[1]}% ${SCRATCH[2]}% / ${getAlpha(color) / 255})`
 }
 
 export function toHSLA(color: ColorBits) {
-  const [h, s, l] = srgbToHsl(getRed(color) / 255, getGreen(color) / 255, getBlue(color) / 255)
-  return { h, s, l, a: getAlpha(color) / 255 }
+  srgbToHsl(getRed(color) / 255, getGreen(color) / 255, getBlue(color) / 255, SCRATCH)
+  return { h: SCRATCH[0], s: SCRATCH[1], l: SCRATCH[2], a: getAlpha(color) / 255 }
 }
 
 export function formatHWBA(color: ColorBits) {
-  const [h, w, b] = srgbToHwb(getRed(color) / 255, getGreen(color) / 255, getBlue(color) / 255)
-  return `hwb(${h} ${w}% ${b}% / ${getAlpha(color) / 255})`
+  srgbToHwb(getRed(color) / 255, getGreen(color) / 255, getBlue(color) / 255, SCRATCH)
+  return `hwb(${SCRATCH[0]} ${SCRATCH[1]}% ${SCRATCH[2]}% / ${getAlpha(color) / 255})`
 }
 
 export function toHWBA(color: ColorBits) {
-  const [h, w, b] = srgbToHwb(getRed(color) / 255, getGreen(color) / 255, getBlue(color) / 255)
-  return { h, w, b, a: getAlpha(color) / 255 }
+  srgbToHwb(getRed(color) / 255, getGreen(color) / 255, getBlue(color) / 255, SCRATCH)
+  return { h: SCRATCH[0], w: SCRATCH[1], b: SCRATCH[2], a: getAlpha(color) / 255 }
 }
